@@ -1,0 +1,99 @@
+{
+  "id": "8608c690-a833-11e7-a937-ebb9e5076155",
+  "name": "DeploySsrs",
+  "friendlyName": "Deploy MS SQL SSRS Reports",
+  "description": "Deploy items on MS SQL SSRS server based on a configuration file.",
+  "author": "Mario Majcica",
+  "helpMarkDown": "Replace with markdown to show in help",
+  "category": "Deploy",
+  "visibility": [
+    "Build",
+    "Release"
+  ],
+  "demands": [],
+  "version": {
+    "Major": "1",
+    "Minor": "2",
+    "Patch": "9"
+  },
+  "minimumAgentVersion": "1.95.0",
+  "instanceNameFormat": "Deploy reports on $(url)",
+  "inputs": [
+    {
+      "name": "ssrsFilePath",
+      "type": "filePath",
+      "label": "SSRS definition file",
+      "required": true,
+      "helpMarkDown": "Location of the JSON configuration file or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\reports.json. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB. Wildcards can be used. For example, `**/*.ispac` for ISPAC file present in all sub folders."
+    },
+    {
+      "name": "configType",
+      "type": "pickList",
+      "label": "Definition file type",
+      "required": true,
+      "defaultValue": "XML",
+      "options": {
+          "JSON": "JSON",
+          "XML": "XML"
+      },
+      "helpMarkDown": ""
+    },
+    {
+      "name": "rdlFilesFolder",
+      "type": "filePath",
+      "label": "Folder containing RDL and RSD files",
+      "required": true,
+      "helpMarkDown": "Path of the folder containing RDL and RSD files or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB. Wildcards can be used. For example, `**/*.ispac` for ISPAC file present in all sub folders."
+    },
+    {
+      "name": "url",
+      "type": "string",
+      "label": "URL",
+      "required": true,
+      "helpMarkDown": "Url for Reporting server"
+    },
+    {
+      "name": "AuthScheme",
+      "type": "pickList",
+      "label": "Authentication",
+      "required": true,
+      "defaultValue": "windowsAuthentication",
+      "options": {
+          "windowsAuthentication": "Windows Authentication",
+          "sqlServerAuthentication": "SQL Server Authentication"
+      },
+      "helpMarkDown": "Select the authentication mode for connecting to the SQL Server. In Windows authentication mode, the administrator's account, as specified in the Machines section, is used to connect to the SQL Server. In SQL Server Authentication mode, the SQL login and Password have to be provided in the parameters below."
+    },
+    {
+      "name": "Username",
+      "type": "string",
+      "label": "User name",
+      "required": true,
+      "defaultValue": "",
+      "visibleRule": "AuthScheme = sqlServerAuthentication",
+      "helpMarkDown": "Provide the SQL login to connect to the SQL Server. The option is only available if SQL Server Authentication mode has been selected."
+    },
+    {
+      "name": "Password",
+      "type": "string",
+      "label": "Password",
+      "required": true,
+      "defaultValue": "",
+      "visibleRule": "AuthScheme = sqlServerAuthentication",
+      "helpMarkDown": "Provide the Password of the SQL login. The option is only available if SQL Server Authentication mode has been selected."
+    },
+    {
+      "defaultValue": "true",
+      "helpMarkDown": "If selected overwrites objects in the same path that already do exists.",
+      "label": "Overwrite existing objects",
+      "name": "overwrite",
+      "required": false,
+      "type": "boolean"
+    }
+  ],
+  "execution": {
+    "PowerShell3": {
+      "target": "task.ps1"
+    }
+  }
+}
