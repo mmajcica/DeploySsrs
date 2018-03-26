@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Folder xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Root">
+  <Folders>
+    <Folder Name="FirstFolder">
+      <Folders>
+        <Folder Name="Datasources" Hidden="true">
+          <DataSources>
+            <DataSource ConnectionString="Data Source=SERVER1\{{Instance}};Initial Catalog=MyDB" Name="MyDB" Extension="SQL" CredentialRetrieval="Integrated" />
+			<DataSource ConnectionString="Data Source=SERVER1;Initial Catalog=MetaData" Name="MetaData" Extension="SQL" CredentialRetrieval="Store" UserName="user" Password="password" WindowsCredentials="True" />
+          </DataSources>
+        </Folder>
+        <Folder Name="Reports">
+          <Reports>
+            <Report Name="Error Report" Hidden="true" FileName="Error Report.rdl" />
+            <Report Name="Error Report for Export" Hidden="true" FileName="Error Report for Export.rdl" />
+          </Reports>
+          <Security>
+            <Security Name="{{DeploymentAccount}}">
+              <Roles>
+                <Role>Browser</Role>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{SecurityDomain}}\{{Security_Prefix}}crdwfgbis2team{{Security_Postfix}}">
+              <Roles>
+                <Role>Browser</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{DomainDbo}}\{{Security_Prefix}}crdwdatabaseowner{{Security_Postfix}}">
+              <Roles>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{SecurityDomain}}\{{Security_Prefix}}crdwfgsupport{{Security_Postfix}}">
+              <Roles>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{SecurityDomain}}\{{Security_Prefix}}crdwfgthirdlinesupport{{Security_Postfix}}">
+              <Roles>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{DomainSvc}}\{{Security_Admin_Prefix}}databaseadmins{{Security_Admin_Postfix}}">
+              <Roles>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+          </Security>
+        </Folder>
+          <Reports>
+            <Report Name="CRDW Report Data Quality unlinked TRBE assessments" Hidden="false" FileName="CRDW Report Data Quality unlinked TRBE assessments.rdl" />
+          </Reports>
+          <Security>
+            <Security Name="{{DeploymentAccount}}">
+              <Roles>
+                <Role>Browser</Role>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{SecurityDomain}}\{{Security_Prefix}}crdwfgbis2team{{Security_Postfix}}">
+              <Roles>
+                <Role>Browser</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{DomainDbo}}\{{Security_Prefix}}crdwdatabaseowner{{Security_Postfix}}">
+              <Roles>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{SecurityDomain}}\{{Security_Prefix}}crdwfgsupport{{Security_Postfix}}">
+              <Roles>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{SecurityDomain}}\{{Security_Prefix}}crdwfgthirdlinesupport{{Security_Postfix}}">
+              <Roles>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+            <Security Name="{{DomainSvc}}\{{Security_Admin_Prefix}}databaseadmins{{Security_Admin_Postfix}}">
+              <Roles>
+                <Role>Content Manager</Role>
+              </Roles>
+            </Security>
+          </Security>
+        </Folder>
+      </Folders>
+      <Security>
+        <Security Name="{{DeploymentAccount}}">
+          <Roles>
+            <Role>Browser</Role>
+            <Role>Content Manager</Role>
+          </Roles>
+        </Security>
+        <Security Name="{{SecurityDomain}}\{{Security_Prefix}}crdwfgportfoliorepuser{{Security_Postfix}}">
+          <Roles>
+            <Role>Browser</Role>
+          </Roles>
+        </Security>
+      </Security>
+    </Folder>
+  </Folders>
+</Folder>
