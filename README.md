@@ -1,4 +1,4 @@
-# Windows Machine File Copy Task (WinRM)
+# Deploy SSRS Task
 ### Overview
 The task is used to copy application files and other artifacts that are required to install the application on Windows Machines like PowerShell scripts, PowerShell-DSC modules etc. The task provides the ability to copy files to Windows Machines. The tasks uses WinRM for the data transfer.
 
@@ -24,5 +24,4 @@ The only requirement is PowerShell V5 installed both on the build server and on 
 
 ## Contributing
 
-Feel free to notify any issue in the issues section of this GitHub repository.
-In order to build this task, you will need Node.js and gulp installed. Once cloned the repository, just run 'gulp package' and in the newly created folder called dist you will find a new version of the extension.
+Feel free to notify any issue in the issues section of this GitHub repository. In order to build this task, you will need Node.js and gulp installed. Once cloned the repository, just run 'npm install' then 'gulp package' and in the newly created folder called _packages you will find a new version of the extension.

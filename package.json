@@ -1,22 +1,32 @@
 {
-  "name": "win-rm-file-copy",
-  "version": "0.0.0",
-  "description": "Windows Machine File Copy (WinRM)",
-  "homepage": "http://blog.majcica.com/",
-  "author": {
-    "name": "mmajcica"
+  "name": "mmajcica.deployssrs",
+  "version": "0.1.0",
+  "description": "Build/Release task for TFS/VSTS that will allow you to deploy reports and more on SQL SSRS.",
+  "author": "Mario Majcica",
+  "license": "MIT",
+  "homepage": "https://github.com/mmajcica/DeploySsrs#readme",
+  "bugs": {
+    "url": "https://github.com/mmajcica/DeploySsrs/issues"
   },
-  "files": [],
-  "main": "",
-  "keywords": [],
+  "keywords": [
+    "VSTS",
+    "release",
+    "build",
+    "SSRS",
+    "Deploy",
+    "SQL"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmajcica/DeploySsrs.git"
+  },
   "devDependencies": {
-    "del": "^2.2.0",
-    "gulp": "^3.9.0",
-    "gulp-eslint": "^2.0.0",
-    "gulp-istanbul": "^0.10.3",
-    "gulp-mocha": "^2.0.0",
-    "gulp-plumber": "^1.0.0",
-    "gulp-util": "^3.0.7",
-    "shelljs": "^0.7.0"
+    "del": "^2.0.0",
+    "gulp": "^3.9.1",
+    "gulp-debug": "^2.1.2",
+    "gulp-util": "^3.0.0",
+    "merge-stream": "^1.0.0",
+    "shelljs": "^0.3.0",
+    "minimist": "1.1.1"
   }
 }

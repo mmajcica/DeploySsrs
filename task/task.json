@@ -4,7 +4,7 @@
   "friendlyName": "Deploy MS SQL SSRS Reports",
   "description": "Deploy items on MS SQL SSRS server based on a configuration file.",
   "author": "Mario Majcica",
-  "helpMarkDown": "Replace with markdown to show in help",
+  "helpMarkDown": "",
   "category": "Deploy",
   "visibility": [
     "Build",
@@ -12,47 +12,36 @@
   ],
   "demands": [],
   "version": {
-    "Major": "1",
-    "Minor": "2",
-    "Patch": "9"
+    "Major": "2",
+    "Minor": "0",
+    "Patch": "4"
   },
-  "minimumAgentVersion": "1.95.0",
+  "minimumAgentVersion": "1.95.1",
   "instanceNameFormat": "Deploy reports on $(url)",
+  "groups": [
+    {
+        "displayName": "Server",
+        "isExpanded": true,
+        "name": "server"
+    },
+    {
+      "displayName": "Deployment",
+      "isExpanded": true,
+      "name": "deploy"
+    }
+  ],
   "inputs": [
     {
-      "name": "ssrsFilePath",
-      "type": "filePath",
-      "label": "SSRS definition file",
-      "required": true,
-      "helpMarkDown": "Location of the JSON configuration file or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\reports.json. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB. Wildcards can be used. For example, `**/*.ispac` for ISPAC file present in all sub folders."
-    },
-    {
-      "name": "configType",
-      "type": "pickList",
-      "label": "Definition file type",
-      "required": true,
-      "defaultValue": "XML",
-      "options": {
-          "JSON": "JSON",
-          "XML": "XML"
-      },
-      "helpMarkDown": ""
-    },
-    {
-      "name": "rdlFilesFolder",
-      "type": "filePath",
-      "label": "Folder containing RDL and RSD files",
-      "required": true,
-      "helpMarkDown": "Path of the folder containing RDL and RSD files or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB. Wildcards can be used. For example, `**/*.ispac` for ISPAC file present in all sub folders."
-    },
-    {
+      "groupName": "server",
       "name": "url",
       "type": "string",
-      "label": "URL",
+      "label": "ReportService2010 endpoint URL",
+      "defaultValue": "http://your.server/ReportServer/ReportService2010.asmx?wsdl",
       "required": true,
-      "helpMarkDown": "Url for Reporting server"
+      "helpMarkDown": "The Report Server Web service ReportService2010 endpoint URL"
     },
     {
+      "groupName": "server",
       "name": "AuthScheme",
       "type": "pickList",
       "label": "Authentication",
@@ -65,6 +54,7 @@
       "helpMarkDown": "Select the authentication mode for connecting to the SQL Server. In Windows authentication mode, the administrator's account, as specified in the Machines section, is used to connect to the SQL Server. In SQL Server Authentication mode, the SQL login and Password have to be provided in the parameters below."
     },
     {
+      "groupName": "server",
       "name": "Username",
       "type": "string",
       "label": "User name",
@@ -74,6 +64,7 @@
       "helpMarkDown": "Provide the SQL login to connect to the SQL Server. The option is only available if SQL Server Authentication mode has been selected."
     },
     {
+      "groupName": "server",
       "name": "Password",
       "type": "string",
       "label": "Password",
@@ -83,6 +74,23 @@
       "helpMarkDown": "Provide the Password of the SQL login. The option is only available if SQL Server Authentication mode has been selected."
     },
     {
+      "groupName": "deploy",
+      "name": "rdlFilesFolder",
+      "type": "filePath",
+      "label": "Folder containing RDL and/or RSD files",
+      "required": true,
+      "helpMarkDown": "Path of the folder containing RDL and RSD files or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB. Wildcards can be used. For example, `**/*.ispac` for ISPAC file present in all sub folders."
+    },
+    {
+      "groupName": "deploy",
+      "name": "ssrsFilePath",
+      "type": "filePath",
+      "label": "SSRS definition file",
+      "required": true,
+      "helpMarkDown": "Location of the JSON configuration file or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\reports.json. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB. Wildcards can be used. For example, `**/*.ispac` for ISPAC file present in all sub folders."
+    },
+    {
+      "groupName": "deploy",
       "defaultValue": "true",
       "helpMarkDown": "If selected overwrites objects in the same path that already do exists.",
       "label": "Overwrite existing objects",

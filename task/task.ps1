@@ -1,5 +1,3 @@
-using module ".\ps_modules\ssrs.psm1"
-
 [CmdletBinding()]
 param()
 
@@ -8,14 +6,15 @@ Trace-VstsEnteringInvocation $MyInvocation
 try
 {
     $url = Get-VstsInput -Name "url" -Require
-    $ssrsFilePath = Get-VstsInput -Name "ssrsFilePath" -Require
-    $configType = Get-VstsInput -Name "configType" -Require    
+    $ssrsFilePath = Get-VstsInput -Name "ssrsFilePath" -Require  
     $rdlFilesFolder = Get-VstsInput -Name "rdlFilesFolder" -Require
     $authScheme = Get-VstsInput -Name "authscheme" -Require
     $username = Get-VstsInput -Name "username"
     $password = Get-VstsInput -Name "password"
     $overwrite = Get-VstsInput -Name "overwrite" -AsBool
     
+    Import-Module -Name $PSScriptRoot\ps_modules\ssrs.psm1
+
     $url = Format-SsrsUrl -Url $url
 
     if ($authScheme -eq "windowsAuthentication")
@@ -37,7 +36,7 @@ try
 
     if(Test-Path $ssrsFilePath -PathType Leaf)
     {
-        $folder = Get-Configuration -FilePath $ssrsFilePath -ConfigurationSource ([ConfigurationSource]$configType)
+        $folder = Get-Configuration -FilePath $ssrsFilePath
     }
     else
     {

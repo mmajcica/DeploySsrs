@@ -15,6 +15,8 @@ function New-DataSource()
         [string]$Password,
         [switch]$DisposeProxy,
         [switch]$Hidden,
+        [switch]$WindowsCredentials,
+        [switch]$ImpersonateUser,
         [switch]$Overwrite
     )
     BEGIN
@@ -38,8 +40,11 @@ function New-DataSource()
                 $Definition.Password = $Password
             }
 
+            $Definition.ImpersonateUserSpecified = $ImpersonateUser
+            $Definition.WindowsCredentials = $WindowsCredentials
+
             $properties = $null
-            
+
             if ($Hidden)
             {
                 $hiddenProperty = New-Object -TypeName SSRS.ReportingService2010.Property
@@ -136,9 +141,7 @@ function Get-Configuration()
     [CmdletBinding()]
     param
     (
-        [string][parameter(Mandatory = $true)]$FilePath,
-        [ConfigurationSource][parameter(Mandatory = $true)]$ConfigurationSource
-
+        [System.IO.FileInfo][parameter(Mandatory = $true)]$FilePath
     )
     BEGIN
     {
@@ -148,14 +151,20 @@ function Get-Configuration()
     }
     PROCESS
     {
-        if ($ConfigurationSource -eq [ConfigurationSource]::JSON)
+        if ($FilePath.Extension -eq ".json")
         {
             return GetJsonFolderItems -Folder (Get-Content -Path $FilePath | ConvertFrom-Json)
         }
+        elseif ($FilePath.Extension -eq ".xml")
+        {
+            $Folder = (Select-Xml -Path $FilePath -XPath /Folder).Node
 
-        $Folder = (Select-Xml -Path $FilePath -XPath /Folder).Node
-
-        return GetXmlFolderItems -Folder $Folder
+            return GetXmlFolderItems -Folder $Folder
+        }
+        else
+        {
+            throw "Invalid configuration file type."
+        }        
     }
     END { }
 }
@@ -187,29 +196,17 @@ function Publish-SsrsFolder()
             Write-Verbose "Folder created. Full SSRS path of the object is '$fullPath'."
 
             $currentFolder = "$($Folder.Path().TrimEnd('/'))/$($Folder.Name)"
+
+            Write-Verbose "Current folder '$($Folder.Name)' and it's path '$($Folder.Path())'"
         }
         else
         {
             $currentFolder = "/"
+
+            Write-Verbose "Current folder is the root folder"
         }
-
-        write-verbose "Current folder $($Folder.Name) and it's path $($Folder.Path())"
-
         
-
-        $policies = [SSRS.ReportingService2010.Policy[]]@()
-
-        foreach($group in $Folder.RoleAssignments)
-        {
-            $policy = Get-ReportingServicePolicy -GroupUserName $group.Name -Roles $group.Roles
-
-            $policies += $policy
-        }
-
-        if ($policies)
-        {
-            Set-Policy -Proxy $Proxy -Path $currentFolder -Policies $policies
-        }
+        Set-SecurityPolicy -Proxy $Proxy -Folder $Folder.Path() -Name $Folder.Name -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite
 
         foreach($dataSource in $Folder.DataSources)
         {
@@ -222,14 +219,18 @@ function Publish-SsrsFolder()
                             -UserName $dataSource.UserName `
                             -Password $dataSource.Password `
                             -Hidden:$dataSource.Hidden `
+                            -WindowsCredentials:$dataSource.WindowsCredentials `
+                            -ImpersonateUser:$dataSource.ImpersonateUser `
                             -Overwrite:$Overwrite `
                 | Out-String | Write-Verbose
+            
+            Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -Name $dataSource.Name -RoleAssignments $dataSource.RoleAssignments -InheritParentSecurity:$dataSource.InheritParentSecurity -Overwrite:$Overwrite
         }
 
         foreach($dataSet in $Folder.DataSets)
         {
             $rsdPath = Join-Path $FilesFolder $dataSet.FileName
-            
+
             if (Test-Path -LiteralPath $rsdPath -PathType Leaf)
             {
                 New-SsrsDataSet -Proxy $Proxy `
@@ -239,6 +240,8 @@ function Publish-SsrsFolder()
                                 -Hidden:$dataSet.Hidden `
                                 -Overwrite:$Overwrite `
                     | Out-String | Write-Verbose
+                
+                Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -Name $dataSet.Name -RoleAssignments $dataSet.RoleAssignments -InheritParentSecurity:$dataSet.InheritParentSecurity -Overwrite:$Overwrite
             }
             else
             {
@@ -259,10 +262,12 @@ function Publish-SsrsFolder()
                             -Hidden:$report.Hidden `
                             -Overwrite:$Overwrite `
                     | Out-String | Write-Verbose
+
+                Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -Name $report.Name -RoleAssignments $report.RoleAssignments -InheritParentSecurity:$report.InheritParentSecurity -Overwrite:$Overwrite
             }
             else
             {
-                Write-Warning "File $($report.FileName) has not be found in the path $FilesFolder."    
+                Write-Warning "File $($report.FileName) has not be found in the path $FilesFolder."
             }
         }
 
@@ -274,11 +279,71 @@ function Publish-SsrsFolder()
     END { }
 }
 
-enum ConfigurationSource
+function Set-SecurityPolicy()
 {
-    JSON
-    XML
+    [CmdletBinding()]
+    param
+    (
+        [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
+        [string][parameter(Mandatory = $true)]$Folder,
+        [string][parameter(Mandatory = $true)]$Name,
+        [RoleAssignment[]]$RoleAssignments,
+        [switch]$InheritParentSecurity,
+        [switch]$Overwrite,
+        [switch]$DisposeProxy
+    )
+    BEGIN
+    {
+        Write-Verbose "Entering script $($MyInvocation.MyCommand.Name)"
+        Write-Verbose "Parameter Values"
+        $PSBoundParameters.Keys | ForEach-Object { Write-Verbose "$_ = '$($PSBoundParameters[$_])'" }
+    }
+    PROCESS
+    {
+        $path = "$($Folder.TrimEnd('/'))/$($Name)" 
+
+        # if the item needs to be overwritten and it exists
+        if ($Overwrite -and (Test-SsrsItem $Proxy $path))
+        {
+            # check if parent security needs to be inherited and if not already so
+            if ($InheritParentSecurity -and -not (Test-InheritParentSecurity $Proxy $path))
+            {
+                Set-InheritParentSecurity $Proxy $path
+            }
+            else
+            {
+                if ($RoleAssignments)
+                {
+                    $policies = [SSRS.ReportingService2010.Policy[]]@()
+
+                    foreach($group in $RoleAssignments)
+                    {
+                        $policy = Get-ReportingServicePolicy -GroupUserName $group.Name -Roles $group.Roles
+
+                        $policies += $policy
+                    }
+
+                    if ($policies)
+                    {
+                        Set-Policy -Proxy $Proxy -Path $path -Policies $policies
+                    }
+                }
+            }
+        }
+        else
+        {
+            
+        }
+    }
+    END
+    {
+        if ($DisposeProxy -and $Proxy)
+            {
+                $Proxy.Dispose()
+            }
+    }
 }
+
 function GetJsonFolderItems($Folder, [Folder]$Parent = $null)
 {
     $f = [Folder]::new($folder.name, $Parent, $folder.hidden)
@@ -290,17 +355,47 @@ function GetJsonFolderItems($Folder, [Folder]$Parent = $null)
 
     foreach($dataSource in $folder.dataSources)
     {
-        $f.DataSources += [DataSource]::new($dataSource.name, $dataSource.connectionString, $dataSource.extension, $dataSource.credentialRetrieval, $dataSource.userName, $dataSource.password, $dataSource.hidden)
+        $d = [DataSource]::new($dataSource.name,`
+                               $dataSource.connectionString,`
+                               $dataSource.extension,`
+                               $dataSource.credentialRetrieval,`
+                               $dataSource.userName,`
+                               $dataSource.password,`
+                               $dataSource.windowsCredentials,`
+                               $dataSource.impersonateUser,`
+                               $dataSource.inheritParentSecurity,`
+                               $dataSource.hidden)
+
+        foreach($group in $dataSource.security)
+        {
+            $d.RoleAssignments += [RoleAssignment]::new($group.name, $group.roles)
+        }
+
+        $f.DataSources += $d
     }
 
     foreach($dataSet in $folder.dataSets)
     {
-        $f.DataSets += [DataSet]::new($dataSet.name, $dataSet.fileName, $dataSet.hidden)
+        $ds += [DataSet]::new($dataSet.name, $dataSet.fileName, $dataSet.inheritParentSecurity, $dataSet.hidden)
+
+        foreach($group in $dataSet.security)
+        {
+            $ds.RoleAssignments += [RoleAssignment]::new($group.name, $group.roles)
+        }
+
+        $f.DataSets += $ds
     }
 
     foreach($report in $folder.reports)
     {
-        $f.Reports += [Report]::new($report.name, $report.fileName, $report.hidden)
+        $r += [Report]::new($report.name, $report.fileName, $report.inheritParentSecurity, $report.hidden)
+
+        foreach($group in $report.security)
+        {
+            $r.RoleAssignments += [RoleAssignment]::new($group.name, $group.roles)
+        }
+
+        $f.Reports += $r
     }
 
     foreach($subFolder in $folder.folders)
@@ -310,9 +405,10 @@ function GetJsonFolderItems($Folder, [Folder]$Parent = $null)
 
     return $f
 }
+
 function GetXmlFolderItems($Folder, [Folder]$Parent = $null)
 {
-    $f = [Folder]::new($folder.name, $Parent, [System.Convert]::ToBoolean($folder.hidden))
+    $f = [Folder]::new($folder.name, $Parent, [System.Convert]::ToBoolean($folder.inheritParentSecurity), [System.Convert]::ToBoolean($folder.hidden))
 
     foreach($group in $folder.security.security)
     {
@@ -321,17 +417,48 @@ function GetXmlFolderItems($Folder, [Folder]$Parent = $null)
 
     foreach($dataSource in $folder.dataSources.dataSource)
     {
-        $f.DataSources += [DataSource]::new($dataSource.name, $dataSource.connectionString, $dataSource.extension, $dataSource.credentialRetrieval, $dataSource.userName, $dataSource.password, [System.Convert]::ToBoolean($dataSource.hidden))
+        $d = [DataSource]::new($dataSource.name,`
+                               $dataSource.connectionString,`
+                               $dataSource.extension,`
+                               $dataSource.credentialRetrieval,`
+                               $dataSource.userName,`
+                               $dataSource.password,`
+                               [System.Convert]::ToBoolean($dataSource.windowsCredentials),`
+                               [System.Convert]::ToBoolean($dataSource.impersonateUser),`
+                               [System.Convert]::ToBoolean($dataSource.inheritParentSecurity),`
+                               [System.Convert]::ToBoolean($dataSource.hidden))
+        
+        foreach($group in $dataSource.security.security)
+        {
+            $d.RoleAssignments += [RoleAssignment]::new($group.name, $group.roles.role)
+        }
+
+        $f.DataSources += $d
     }
 
-    foreach($dataSet in $folder.dataSets.dataSet)
+    foreach($dataSet in $folder.DataSets.dataSet)
     {
-        $f.DataSets += [DataSet]::new($dataSet.name, $dataSet.fileName, [System.Convert]::ToBoolean($dataSet.hidden))
+        $ds = [DataSet]::new($dataSet.name, $dataSet.fileName, [System.Convert]::ToBoolean($dataSet.inheritParentSecurity), [System.Convert]::ToBoolean($dataSet.hidden))
+
+        foreach($group in $dataSet.security.security)
+        {
+            $ds.RoleAssignments += [RoleAssignment]::new($group.name, $group.roles.role)
+        }
+
+        $f.DataSets += $ds
     }
 
-    foreach($report in $folder.reports.report)
+    foreach($report in $folder.Reports.report)
     {
-        $f.Reports += [Report]::new($report.name, $report.fileName, [System.Convert]::ToBoolean($report.hidden))
+        
+        $r =  [Report]::new($report.name, $report.fileName, [System.Convert]::ToBoolean($report.inheritParentSecurity), [System.Convert]::ToBoolean($report.hidden))
+
+        foreach($group in $report.security.security)
+        {
+            $r.RoleAssignments += [RoleAssignment]::new($group.name, $group.roles.role)
+        }
+
+        $f.Reports += $r
     }
 
     foreach($subFolder in $folder.folders.folder)
@@ -342,130 +469,6 @@ function GetXmlFolderItems($Folder, [Folder]$Parent = $null)
     return $f
 }
 
-class Folder
-{
-    [ValidateNotNullOrEmpty()][string]$Name
-    [Folder]$Parent
-    [ValidateNotNullOrEmpty()][boolean]$Hidden
-
-    [Folder[]]$Folders
-    [DataSource[]]$DataSources
-    [DataSet[]]$DataSets
-    [Report[]]$Reports
-    [RoleAssignment[]]$RoleAssignments
-
-
-    Folder($Name, [Folder]$Parent)
-    {
-        $this.Name = $Name
-        $this.Parent = $Parent
-        $this.Hidden = $false
-    }
-
-    Folder($Name, [Folder]$Parent, $Hidden)
-    {
-        $this.Name = $Name
-        $this.Parent = $Parent
-        $this.Hidden = $Hidden
-    }
-
-    [string]Path()
-    {
-        if ($this.Parent -and $this.Parent.Name -ne "root")
-        {
-            return "$($this.Parent.Path().TrimEnd('/'))/$($this.Parent.Name)"
-        }
-
-        return "/"
-    }
-}
-
-class Report
-{
-    [ValidateNotNullOrEmpty()][string]$Name
-    [ValidateNotNullOrEmpty()][string]$FileName
-    [ValidateNotNullOrEmpty()][boolean]$Hidden
-
-    Report([string]$Name, [string]$FileName)
-    {
-        $this.Name = $Name
-        $this.FileName = $FileName
-        $this.Hidden = $false
-    }
-
-    Report([string]$Name, [string]$FileName, [boolean]$Hidden)
-    {
-        $this.Name = $Name
-        $this.FileName = $FileName
-        $this.Hidden = $Hidden
-    }
-}
-
-class DataSet
-{
-    [ValidateNotNullOrEmpty()][string]$Name
-    [ValidateNotNullOrEmpty()][string]$FileName
-    [ValidateNotNullOrEmpty()][boolean]$Hidden
-
-    DataSet([string]$Name, [string]$FileName)
-    {
-        $this.Name = $Name
-        $this.FileName = $FileName
-        $this.Hidden = $false
-    }
-
-    DataSet([string]$Name, [string]$FileName, [boolean]$Hidden)
-    {
-        $this.Name = $Name
-        $this.FileName = $FileName
-        $this.Hidden = $Hidden
-    }
-}
-
-class DataSource
-{
-    [ValidateNotNullOrEmpty()][string]$ConnectionString
-    [ValidateNotNullOrEmpty()][string]$Name
-    [ValidateNotNullOrEmpty()][string]$Extension
-    [ValidateNotNullOrEmpty()][string]$CredentialRetrieval
-    [string]$UserName
-    [string]$Password
-    [ValidateNotNullOrEmpty()][boolean]$Hidden
-
-    DataSource([string]$Name, [string]$ConnectionString, [string]$Extension, [string]$CredentialRetrieval, [string]$UserName, [string]$Password, [boolean]$Hidden)
-    {
-        $this.Name = $Name
-        $this.ConnectionString = $ConnectionString
-        $this.Extension = $Extension
-        $this.CredentialRetrieval = $CredentialRetrieval
-        $this.UserName = $UserName
-        $this.Password = $Password
-        $this.Hidden = $Hidden
-    }
-
-    DataSource([string]$Name, [string]$ConnectionString, [string]$Extension, [string]$CredentialRetrieval, [string]$UserName, [string]$Password)
-    {
-        $this.Name = $Name
-        $this.ConnectionString = $ConnectionString
-        $this.Extension = $Extension
-        $this.CredentialRetrieval = $CredentialRetrieval
-        $this.UserName = $UserName
-        $this.Password = $Password
-        $this.Hidden = $false
-    }
-}
-
-class RoleAssignment
-{
-    [ValidateNotNullOrEmpty()][string]$Name
-    [ValidateNotNullOrEmpty()][string[]]$Roles
-
-    RoleAssignment([string]$Name, [string[]]$Roles)
-    {
-        $this.Name = $Name
-        $this.Roles = $Roles
-    }
-}
 function Test-SsrsItem()
 {
     [CmdletBinding()]
@@ -493,6 +496,74 @@ function Test-SsrsItem()
             }
 
             return $true
+        }
+        finally
+        {
+            if ($DisposeProxy -and $Proxy)
+            {
+                $Proxy.Dispose()
+            }
+        }
+    }
+    END { }
+}
+
+function Test-InheritParentSecurity()
+{
+    [CmdletBinding()]
+    param
+    (
+        [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
+        [string][parameter(Mandatory = $true)]$Path,
+        [switch]$DisposeProxy
+    )
+    BEGIN
+    {
+        Write-Verbose "Entering script $($MyInvocation.MyCommand.Name)"
+        Write-Verbose "Parameter Values"
+        $PSBoundParameters.Keys | ForEach-Object { Write-Verbose "$_ = '$($PSBoundParameters[$_])'" }
+    }
+    PROCESS
+    {
+        try
+        {
+            $InheritParent = $true
+
+            $Proxy.GetPolicies($path, [ref]$InheritParent) | Out-Null
+
+            return $InheritParent
+        }
+        finally
+        {
+            if ($DisposeProxy -and $Proxy)
+            {
+                $Proxy.Dispose()
+            }
+        }
+    }
+    END { }
+}
+
+function Set-InheritParentSecurity()
+{
+    [CmdletBinding()]
+    param
+    (
+        [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
+        [string][parameter(Mandatory = $true)]$Path,
+        [switch]$DisposeProxy
+    )
+    BEGIN
+    {
+        Write-Verbose "Entering script $($MyInvocation.MyCommand.Name)"
+        Write-Verbose "Parameter Values"
+        $PSBoundParameters.Keys | ForEach-Object { Write-Verbose "$_ = '$($PSBoundParameters[$_])'" }
+    }
+    PROCESS
+    {
+        try
+        {
+            $Proxy.InheritParentSecurity($path) | Out-Null
         }
         finally
         {
@@ -687,9 +758,9 @@ function New-SsrsReport()
 	param
 	(
         [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
-        [ValidateScript({Test-Path $_ -PathType 'Leaf'})][parameter(Mandatory = $true)][string]$RdlPath,    
+        [ValidateScript({Test-Path $_ -PathType 'Leaf'})][parameter(Mandatory = $true)][System.IO.FileInfo]$RdlPath,    
         [string]$Path = "/",
-        [parameter(Mandatory = $true)][string]$Name,
+        [string]$Name,
         [switch]$Hidden,
         [switch]$Overwrite,
         [switch]$DisposeProxy
@@ -735,6 +806,11 @@ function New-SsrsReport()
                 {
                     $properties = @($descriptionProperty)
                 }
+            }
+
+            if (-not $Name)
+            {
+                $Name = $RdlPath.BaseName
             }
 
             Write-Verbose "Creating report $Name"
@@ -901,4 +977,149 @@ function New-SsrsDataSet()
         }
     }
     END { }
+}
+
+class Folder
+{
+    [ValidateNotNullOrEmpty()][string]$Name
+    [Folder]$Parent
+    [boolean]$InheritParentSecurity
+    [ValidateNotNullOrEmpty()][boolean]$Hidden
+
+    [Folder[]]$Folders
+    [DataSource[]]$DataSources
+    [DataSet[]]$DataSets
+    [Report[]]$Reports
+    [RoleAssignment[]]$RoleAssignments
+
+
+    Folder($Name, [Folder]$Parent)
+    {
+        $this.Name = $Name
+        $this.Parent = $Parent
+        $this.InheritParentSecurity = $false
+        $this.Hidden = $false
+    }
+
+    Folder($Name, [Folder]$Parent, $InheritParentSecurity, $Hidden)
+    {
+        $this.Name = $Name
+        $this.Parent = $Parent
+        $this.InheritParentSecurity = $InheritParentSecurity
+        $this.Hidden = $Hidden
+    }
+
+    [string]Path()
+    {
+        if ($this.Parent -and $this.Parent.Name -ne "root")
+        {
+            return "$($this.Parent.Path().TrimEnd('/'))/$($this.Parent.Name)"
+        }
+
+        return "/"
+    }
+}
+
+class Report
+{
+    [ValidateNotNullOrEmpty()][string]$Name
+    [ValidateNotNullOrEmpty()][string]$FileName
+    [boolean]$InheritParentSecurity
+    [ValidateNotNullOrEmpty()][boolean]$Hidden
+    [RoleAssignment[]]$RoleAssignments
+
+    Report([string]$Name, [string]$FileName)
+    {
+        $this.Name = $Name
+        $this.FileName = $FileName
+        $this.InheritParentSecurity = $false
+        $this.Hidden = $false
+    }
+
+    Report([string]$Name, [string]$FileName, $InheritParentSecurity, [boolean]$Hidden)
+    {
+        $this.Name = $Name
+        $this.FileName = $FileName
+        $this.InheritParentSecurity = $InheritParentSecurity
+        $this.Hidden = $Hidden
+    }
+}
+
+class DataSet
+{
+    [ValidateNotNullOrEmpty()][string]$Name
+    [ValidateNotNullOrEmpty()][string]$FileName
+    [boolean]$InheritParentSecurity
+    [ValidateNotNullOrEmpty()][boolean]$Hidden
+    [RoleAssignment[]]$RoleAssignments
+
+    DataSet([string]$Name, [string]$FileName)
+    {
+        $this.Name = $Name
+        $this.FileName = $FileName
+        $this.InheritParentSecurity = $false
+        $this.Hidden = $false
+    }
+
+    DataSet([string]$Name, [string]$FileName, $InheritParentSecurity, [boolean]$Hidden)
+    {
+        $this.Name = $Name
+        $this.FileName = $FileName
+        $this.InheritParentSecurity = $InheritParentSecurity
+        $this.Hidden = $Hidden
+    }
+}
+
+class DataSource
+{
+    [ValidateNotNullOrEmpty()][string]$ConnectionString
+    [ValidateNotNullOrEmpty()][string]$Name
+    [ValidateNotNullOrEmpty()][string]$Extension
+    [ValidateNotNullOrEmpty()][string]$CredentialRetrieval
+    [string]$UserName
+    [string]$Password
+    [boolean]$WindowsCredentials
+    [boolean]$ImpersonateUser
+    [boolean]$InheritParentSecurity
+    [ValidateNotNullOrEmpty()][boolean]$Hidden
+    [RoleAssignment[]]$RoleAssignments
+
+    DataSource([string]$Name, [string]$ConnectionString, [string]$Extension, [string]$CredentialRetrieval, [string]$UserName, [string]$Password, [boolean]$WindowsCredentials, [boolean]$ImpersonateUser)
+    {
+        $this.Name = $Name
+        $this.ConnectionString = $ConnectionString
+        $this.Extension = $Extension
+        $this.CredentialRetrieval = $CredentialRetrieval
+        $this.UserName = $UserName
+        $this.Password = $Password
+        $this.WindowsCredentials = $WindowsCredentials
+        $this.ImpersonateUser = $ImpersonateUser
+        $this.InheritParentSecurity = $false
+        $this.Hidden = $false
+    }
+    DataSource([string]$Name, [string]$ConnectionString, [string]$Extension, [string]$CredentialRetrieval, [string]$UserName, [string]$Password, [boolean]$WindowsCredentials, [boolean]$ImpersonateUser, $InheritParentSecurity, [boolean]$Hidden)
+    {
+        $this.Name = $Name
+        $this.ConnectionString = $ConnectionString
+        $this.Extension = $Extension
+        $this.CredentialRetrieval = $CredentialRetrieval
+        $this.UserName = $UserName
+        $this.Password = $Password
+        $this.WindowsCredentials = $WindowsCredentials
+        $this.ImpersonateUser = $ImpersonateUser
+        $this.InheritParentSecurity = $InheritParentSecurity
+        $this.Hidden = $Hidden
+    }
+}
+
+class RoleAssignment
+{
+    [ValidateNotNullOrEmpty()][string]$Name
+    [ValidateNotNullOrEmpty()][string[]]$Roles
+
+    RoleAssignment([string]$Name, [string[]]$Roles)
+    {
+        $this.Name = $Name
+        $this.Roles = $Roles
+    }
 }

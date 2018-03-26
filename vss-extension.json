@@ -1,10 +1,10 @@
 {
   "manifestVersion": 1,
-  "extensionId": "win-rm-file-copy",
-  "name": "WinRm File Copy",
-  "version": "1.0.3",
+  "extensionId": "deploy-ssrs",
+  "name": "Deploy SSRS",
+  "version": "1.0.0",
   "publisher": "mmajcica",
-  "description": "Windows Machine File Copy (WinRM)",
+  "description": "Deploy SSRS packages",
   "public": false,
   "galleryFlags": [
     "Public"
@@ -17,10 +17,10 @@
     "Build and release"
   ],
   "tags": [
-    "copy",
-    "windows",
-    "winrm",
-    "file"
+    "SQL Server Reporting Services",
+    "SSRS",
+    "SQL",
+    "rdl"
   ],
   "links": {
     "home": {
@@ -30,15 +30,15 @@
       "uri": "http://blog.majcica.com/2017/12/01/using-windows-machine-file-copy-winrm-vsts-extension"
     },
     "repository": {
-        "uri": "https://github.com/mmajcica/win-rm-file-copy"
+        "uri": "https://github.com/mmajcica/DeploySsrs"
     },
     "issues": {
-        "uri": "https://github.com/mmajcica/win-rm-file-copy/issues"
+        "uri": "https://github.com/mmajcica/DeploySsrs/issues"
     }
   },
   "repository": {
       "type": "git",
-      "uri": "https://github.com/mmajcica/win-rm-file-copy"
+      "uri": "https://github.com/mmajcica/DeploySsrs"
   },
   "branding": {
     "color": "#e9ebed",
@@ -46,7 +46,7 @@
   },
   "screenshots": [
     {
-        "path": "images/copy-files-winrm.png"
+        "path": "images/task-ssrs.png"
     }
   ],
   "content": {
@@ -60,7 +60,7 @@
       "addressable": true
     },
     {
-      "path": "win-rm-file-copy"
+      "path": "task"
     }
   ],
   "targets": [
@@ -70,13 +70,13 @@
   ],
   "contributions": [
     {
-      "id": "win-rm-file-copy",
+      "id": "DeploySsrs",
       "type": "ms.vss-distributed-task.task",
       "targets": [
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "win-rm-file-copy"
+        "name": "task"
       }
     }
   ]
