@@ -92,6 +92,24 @@
     {
       "groupName": "deploy",
       "defaultValue": "true",
+      "helpMarkDown": "If selected the DataSources in the configuration file will be referenced in the Reports, by maching the DatasSource name.",
+      "label": "Reference DataSources",
+      "name": "referenceDataSources",
+      "required": false,
+      "type": "boolean"
+    },
+    {
+      "groupName": "deploy",
+      "defaultValue": "true",
+      "helpMarkDown": "If selected the DataSets in the configuration file will be referenced in the Reports, by maching the DataSets name.",
+      "label": "Reference DataSets",
+      "name": "referenceDataSets",
+      "required": false,
+      "type": "boolean"
+    },
+    {
+      "groupName": "deploy",
+      "defaultValue": "true",
       "helpMarkDown": "If selected overwrites objects in the same path that already do exists.",
       "label": "Overwrite existing objects",
       "name": "overwrite",

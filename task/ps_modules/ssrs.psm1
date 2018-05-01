@@ -208,9 +208,45 @@ function Publish-SsrsFolder()
         
         Set-SecurityPolicy -Proxy $Proxy -Folder $Folder.Path() -Name $Folder.Name -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite
 
+        foreach($folder in $Folder.Folders)
+        {
+            Publish-SsrsFolder -Folder $folder -Proxy $Proxy -FilesFolder $FilesFolder -Overwrite:$Overwrite
+        }
+    }
+    END { }
+}
+
+function Publish-DataSource()
+{
+    [CmdletBinding()]
+    param
+    (
+        [Folder][parameter(Mandatory = $true)]$Folder,
+        [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
+        [switch]$Overwrite
+    )
+    BEGIN
+    {
+        Write-Verbose "Entering script $($MyInvocation.MyCommand.Name)"
+        Write-Verbose "Parameter Values"
+        $PSBoundParameters.Keys | ForEach-Object { Write-Verbose "$_ = '$($PSBoundParameters[$_])'" }    
+    }
+    PROCESS
+    {
+        if ($Folder.Parent)
+        {            
+            $currentFolder = "$($Folder.Path().TrimEnd('/'))/$($Folder.Name)"
+        }
+        else
+        {
+            $currentFolder = "/"
+        }
+
+        [SsrsDataSource[]]$dataSources = $null
+
         foreach($dataSource in $Folder.DataSources)
         {
-            New-DataSource -Proxy $Proxy `
+            $ds = New-DataSource -Proxy $Proxy `
                             -DataSourceName $dataSource.Name `
                             -ConnectString $dataSource.ConnectionString `
                             -Extension $dataSource.Extension `
@@ -222,10 +258,52 @@ function Publish-SsrsFolder()
                             -WindowsCredentials:$dataSource.WindowsCredentials `
                             -ImpersonateUser:$dataSource.ImpersonateUser `
                             -Overwrite:$Overwrite `
-                | Out-String | Write-Verbose
-            
+                
+            $ds | Out-String | Write-Verbose
+
             Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -Name $dataSource.Name -RoleAssignments $dataSource.RoleAssignments -InheritParentSecurity:$dataSource.InheritParentSecurity -Overwrite:$Overwrite
+
+            $dataSources += [SsrsDataSource]::new($ds.Name, $ds.Path, $ds.ID)
+        }        
+
+        foreach($folder in $Folder.Folders)
+        {
+            $dataSources += Publish-DataSource -Folder $folder -Proxy $Proxy -Overwrite:$Overwrite
         }
+
+        return $dataSources
+    }
+    END { }
+}
+
+function Publish-DataSet()
+{
+    [CmdletBinding()]
+    param
+    (
+        [Folder][parameter(Mandatory = $true)]$Folder,
+        [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
+        [string]$FilesFolder,
+        [switch]$Overwrite
+    )
+    BEGIN
+    {
+        Write-Verbose "Entering script $($MyInvocation.MyCommand.Name)"
+        Write-Verbose "Parameter Values"
+        $PSBoundParameters.Keys | ForEach-Object { Write-Verbose "$_ = '$($PSBoundParameters[$_])'" }    
+    }
+    PROCESS
+    {
+        if ($Folder.Parent)
+        {            
+            $currentFolder = "$($Folder.Path().TrimEnd('/'))/$($Folder.Name)"
+        }
+        else
+        {
+            $currentFolder = "/"
+        }
+
+        [SsrsDataSet[]]$dataSets = $null
 
         foreach($dataSet in $Folder.DataSets)
         {
@@ -242,11 +320,54 @@ function Publish-SsrsFolder()
                     | Out-String | Write-Verbose
                 
                 Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -Name $dataSet.Name -RoleAssignments $dataSet.RoleAssignments -InheritParentSecurity:$dataSet.InheritParentSecurity -Overwrite:$Overwrite
+            
+                $dataSets += [SsrsDataSet]::new($dataSet.Name, "$($currentFolder.TrimEnd('/'))/$($dataSet.Name)")
             }
             else
             {
                 Write-Warning "File $($dataSet.FileName) has not be found in the path $FilesFolder."    
             }
+        }
+
+        foreach($folder in $Folder.Folders)
+        {
+            $dataSets += Publish-DataSet -Folder $folder -FilesFolder $FilesFolder -Proxy $Proxy -Overwrite:$Overwrite
+        }
+
+        return $dataSets
+    }
+    END { }
+}
+
+function Publish-Reports()
+{
+    [CmdletBinding()]
+    param
+    (
+        [Folder][parameter(Mandatory = $true)]$Folder,
+        [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
+        [string]$FilesFolder,
+        [SsrsDataSource[]]$DataSources,
+        [SsrsDataSet[]]$DataSets,
+        [bool]$ReferenceDataSources,
+        [bool]$ReferenceDataSets,
+        [switch]$Overwrite
+    )
+    BEGIN
+    {
+        Write-Verbose "Entering script $($MyInvocation.MyCommand.Name)"
+        Write-Verbose "Parameter Values"
+        $PSBoundParameters.Keys | ForEach-Object { Write-Verbose "$_ = '$($PSBoundParameters[$_])'" }    
+    }
+    PROCESS
+    {
+        if ($Folder.Parent)
+        {            
+            $currentFolder = "$($Folder.Path().TrimEnd('/'))/$($Folder.Name)"
+        }
+        else
+        {
+            $currentFolder = "/"
         }
 
         foreach($report in $Folder.Reports)
@@ -259,6 +380,10 @@ function Publish-SsrsFolder()
                             -RdlPath $rdlPath `
                             -Path $currentFolder `
                             -Name $report.Name `
+                            -DataSources $DataSources `
+                            -ReferenceDataSources $ReferenceDataSources `
+                            -DataSets $DataSets `
+                            -ReferenceDataSets $ReferenceDataSets `
                             -Hidden:$report.Hidden `
                             -Overwrite:$Overwrite `
                     | Out-String | Write-Verbose
@@ -267,13 +392,13 @@ function Publish-SsrsFolder()
             }
             else
             {
-                Write-Warning "File $($report.FileName) has not be found in the path $FilesFolder."
+                Write-Warning "File $($report.FileName) has not be found in the path $FilesFolder. Skipping the deployment."
             }
         }
 
         foreach($folder in $Folder.Folders)
         {
-            Publish-SsrsFolder -Folder $folder -Proxy $Proxy -FilesFolder $FilesFolder -Overwrite:$Overwrite
+            Publish-Reports -Folder $folder -FilesFolder $FilesFolder -Proxy $Proxy -DataSources $DataSources -ReferenceDataSources $ReferenceDataSources -DataSets $DataSets -ReferenceDataSets $ReferenceDataSets -Overwrite:$Overwrite
         }
     }
     END { }
@@ -761,6 +886,10 @@ function New-SsrsReport()
         [ValidateScript({Test-Path $_ -PathType 'Leaf'})][parameter(Mandatory = $true)][System.IO.FileInfo]$RdlPath,    
         [string]$Path = "/",
         [string]$Name,
+        [SsrsDataSource[]]$DataSources,
+        [SsrsDataSet[]]$DataSets,
+        [bool]$ReferenceDataSources = $true,
+        [bool]$ReferenceDataSets = $true,
         [switch]$Hidden,
         [switch]$Overwrite,
         [switch]$DisposeProxy
@@ -777,7 +906,6 @@ function New-SsrsReport()
         {
             [xml]$Definition = Get-Content -Path $RdlPath
             $NsMgr = New-XmlNamespaceManager $Definition d
-            $rawDefinition = Get-Content -Encoding Byte -Path $RdlPath
 
             $descriptionNode = $Definition.SelectSingleNode('d:Report/d:Description', $NsMgr)
 
@@ -813,6 +941,28 @@ function New-SsrsReport()
                 $Name = $RdlPath.BaseName
             }
 
+            if ($ReferenceDataSources -and $Datasources)
+            {
+                $nodes = $Definition.SelectNodes('d:Report/d:DataSources/d:DataSource/d:DataSourceReference/..', $NsMgr)
+
+                foreach ($node in $nodes)
+                {
+                    $Datasources | Where-Object { $_.Name -eq $node.Name } | ForEach-Object { $node.DataSourceReference = $_.Path.ToString() ; $node.ChildNodes[2].InnerText = $_.Id }
+                }
+            }
+
+            if ($ReferenceDataSets -and $DataSets)
+            {
+                $nodes = $Definition.SelectNodes('d:Report/d:DataSets/d:DataSet/d:SharedDataSet/d:SharedDataSetReference/..', $NsMgr)
+
+                foreach($node in $nodes)
+                {
+                    @($Datasets | Where-Object { $_.Name -eq $node.ParentNode.Name }) | ForEach-Object { $node.SharedDataSetReference = $_.Path }
+                }
+            }
+
+            $rawDefinition = [System.Text.Encoding]::UTF8.GetBytes($Definition.OuterXml)
+
             Write-Verbose "Creating report $Name"
             $warnings = $null
             
@@ -823,61 +973,66 @@ function New-SsrsReport()
                 $warnings.Message | Write-Warning
             }
 
-            $DataSources = @()
-            $dss = Get-SsrsItem -Proxy $Proxy -Type DataSource
-            $nodes = $Definition.SelectNodes('d:Report/d:DataSources/d:DataSource/d:DataSourceReference/..', $NsMgr)
-
-            foreach($node in $nodes)
+            if ($ReferenceDataSources -and $Datasources)
             {
-                $ds = $dss | Where-Object { $_.Name -eq $node.DataSourceReference } | Select-Object -First 1
+                [SSRS.ReportingService2010.DataSource[]]$RefDataSources = $null
                 
-                if ($ds)
+                $nodes = $Definition.SelectNodes('d:Report/d:DataSources/d:DataSource/d:DataSourceReference/..', $NsMgr)
+
+                foreach($node in $nodes)
                 {
-                    $Reference = New-Object -TypeName SSRS.ReportingService2010.DataSourceReference
-                    $Reference.Reference = $ds.Path
+                    $ds = $Datasources | Where-Object { $_.Name -eq $node.Name } | Select-Object -First 1
+                    
+                    if ($ds)
+                    {
+                        $Reference = New-Object -TypeName SSRS.ReportingService2010.DataSourceReference
+                        $Reference.Reference = $ds.Path
 
-                    $DataSource = New-Object -TypeName SSRS.ReportingService2010.DataSource
-                    $DataSource.Item = $Reference
-                    $DataSource.Name = $node.Name
+                        $DataSource = New-Object -TypeName SSRS.ReportingService2010.DataSource
+                        $DataSource.Item = $Reference
+                        $DataSource.Name = $node.Name
 
-                    $DataSources += $DataSource
+                        $RefDataSources += $DataSource
+                    }
+                    else
+                    {
+                        Write-Warning "The reference for datasource $($node.Name) can not be found."
+                    }
                 }
-                else
-                {
-                    Write-Warning "The reference for datasource $($node.Name) can not be found."
+
+                if ($RefDataSources)
+                {  
+                    $Proxy.SetItemDataSources($report.Path, $RefDataSources)
                 }
             }
 
-            if ($DataSources)
-            {  
-                $Proxy.SetItemDataSources($report.Path, $DataSources)
-            }
-
-            $References = @()
-            $dss = Get-SsrsItem -Proxy $Proxy -Type DataSet
-            $nodes = $Definition.SelectNodes('d:Report/d:DataSets/d:DataSet/d:SharedDataSet/d:SharedDataSetReference/../..', $NsMgr)
-
-            foreach($node in $nodes)
+            if ($ReferenceDataSets -and $DataSets)
             {
-                $ds = $dss | Where-Object { $_.Name -eq $node.SharedDataSet.SharedDataSetReference } | Select-Object -First 1
+                [SSRS.ReportingService2010.ItemReference[]]$References = $null
+                $nodes = $Definition.SelectNodes('d:Report/d:DataSets/d:DataSet/d:SharedDataSet/d:SharedDataSetReference/..', $NsMgr)
 
-                if ($ds)
+                foreach($node in $nodes)
                 {
-                    $Reference = New-Object -TypeName SSRS.ReportingService2010.ItemReference
-                    $Reference.Reference = $ds.Path
-                    $Reference.Name = $node.Name
-            
-                    $References += $Reference
-                }
-                else
-                {
-                    Write-Warning "The reference for dataset $($node.Name) can not be found."
-                }
-            }
+                    $ds = $DataSets | Where-Object { $_.Name -eq $node.ParentNode.Name } | Select-Object -First 1
 
-            if ($References)
-            {
-                $Proxy.SetItemReferences($report.Path, $References)
+                    if ($ds)
+                    {
+                        $Reference = New-Object -TypeName SSRS.ReportingService2010.ItemReference
+                        $Reference.Reference = $ds.Path
+                        $Reference.Name = $node.Name
+                
+                        $References += $Reference
+                    }
+                    else
+                    {
+                        Write-Warning "The reference for dataset $($node.Name) can not be found."
+                    }
+                }
+
+                if ($References)
+                {
+                    $Proxy.SetItemReferences($report.Path, $References)
+                }
             }
 
             return $report
@@ -1122,4 +1277,36 @@ class RoleAssignment
         $this.Name = $Name
         $this.Roles = $Roles
     }
+
+    [string] ToString() { return "$($this.Name)" }
+}
+
+class SsrsDataSource
+{
+    [ValidateNotNullOrEmpty()][string]$Id
+    [ValidateNotNullOrEmpty()][string]$Path
+    [ValidateNotNullOrEmpty()][string]$Name
+
+    SsrsDataSource([string]$Name, [string]$Path, [string]$Id)
+    {
+        $this.Id = $Id
+        $this.Name = $Name
+        $this.Path = $Path
+    }
+
+    [string] ToString() { return "$($this.Name)" }
+}
+
+class SsrsDataSet
+{
+    [ValidateNotNullOrEmpty()][string]$Path
+    [ValidateNotNullOrEmpty()][string]$Name
+
+    SsrsDataSet([string]$Name, [string]$Path)
+    {
+        $this.Name = $Name
+        $this.Path = $Path
+    }
+
+    [string] ToString() { return "$($this.Name)" }
 }

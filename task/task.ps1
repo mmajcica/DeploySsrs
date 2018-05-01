@@ -12,7 +12,9 @@ try
     $username = Get-VstsInput -Name "username"
     $password = Get-VstsInput -Name "password"
     $overwrite = Get-VstsInput -Name "overwrite" -AsBool
-    
+    $referenceDataSources = Get-VstsInput -Name "referenceDataSources" -AsBool
+    $referenceDataSets = Get-VstsInput -Name "referenceDataSets" -AsBool
+
     Import-Module -Name $PSScriptRoot\ps_modules\ssrs.psm1
 
     $url = Format-SsrsUrl -Url $url
@@ -44,6 +46,9 @@ try
     }
 
     Publish-SsrsFolder -Folder $folder -Proxy $proxy -FilesFolder $rdlFilesFolder -Overwrite:$overwrite
+    $dataSources = Publish-DataSource -Folder $folder -Proxy $proxy -Overwrite:$overwrite
+    $dataSets = Publish-DataSet -Folder $folder -Proxy $proxy -FilesFolder $rdlFilesFolder -Overwrite:$overwrite
+    Publish-Reports -Folder $folder -Proxy $proxy -FilesFolder $rdlFilesFolder -DataSources $dataSources -ReferenceDataSources $referenceDataSources -DataSets $dataSets -ReferenceDataSets $referenceDataSets -Overwrite:$overwrite
 }
 finally
 {
