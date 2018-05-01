@@ -1,26 +1,106 @@
 # Deploy SSRS Task
 ### Overview
-The task is used to copy application files and other artifacts that are required to install the application on Windows Machines like PowerShell scripts, PowerShell-DSC modules etc. The task provides the ability to copy files to Windows Machines. The tasks uses WinRM for the data transfer.
-
-
-> This task defers from the original task that ships with VSTS/TFS by the fact that this implementation uses WinRM for the file transfer instead of robocopy on which the original task is based on.
-In certain situations, due to the network restrictions, mounting the drive and using the necessary protocols is not possible. Thus, for such scenarios, where WinRM is enabled, this task will solve the issue.
+This extension will add a Build/Release task in your TFS/VSTS instance that will allow you to deploy Microsoft SQL Server Reporting Services reports and datasets.
+Aside of deploying reports and datasets it will also enable you to supply a configuration in form of an xml or json file in which you will be able to specify the folders in which the reports are going to be deployed. Optionally, in the configuration file, you will be able to specify security that needs to be applied on the deployed objects. Objects that you can manage and deploy are folders, data sources, datasets and reports. 
 
 ### Requirements
 
-The only requirement is PowerShell V5 installed both on the build server and on the machine on which you are trying to copy the files to.
+For this task to run you will need at least PowerShell v5 installed on your agent server.
 
 ### The different parameters of the task are explained below:
 
-*	**Source**: The source of the files. As described above using pre-defined system variables like $(Build.Repository.LocalPath) make it easy to specify the location of the build on the Build Automation Agent machine. The variables resolve to the working folder on the agent machine, when the task is run on it. Wild cards like **\\*.zip are not supported. Probably you are going to copy something from your artifacts folder that was generated in previous steps of your build/release, at example '$(System.ArtifactsDirectory)\\Something'.
-* **Machines**: Specify comma separated list of machine FQDNs/ip addresses along with port(optional). For example dbserver.fabrikam.com, dbserver_int.fabrikam.com:5988,192.168.34:5933.
-* **Admin Login**: Domain/Local administrator of the target host. Format: &lt;Domain or hostname&gt;\\&lt; Admin User&gt;.  
-* **Password**:  Password for the admin login. It can accept variable defined in Build/Release definitions as '$(passwordVariable)'. You may mark variable type as 'secret' to secure it.  
-*	**Destination Folder**: The folder in the Windows machines where the files will be copied to. An example of the destination folder is c:\\FabrikamFibre\\Web.
-*	**Use SSL**: In case you are using secure WinRM, HTTPS for transport, this is the setting you will need to flag.
-*	**Clean Target**: Checking this option will clean the destination folder prior to copying the files to it.
-*	**Copy Files in Parallel**: Checking this option will copy files to all the target machines in parallel, which can speed up the copying process.
+* **ISPAC file(s)**: Specify the location of your Integration Service packages (ISPAC files). Wildcards can be used. For example, `**\\*.ispac` for all ispac files in all sub folders."
+* **Server Name**: Provide the SQL Server name like, machinename\\FabriakmSQL,1433 or localhost or .\\SQL2012R2. Specifying localhost will connect to the Default SQL Server instance on the machine.
+* **Authentication**: Select the authentication mode for connecting to the SQL Server. In Windows authentication mode, build service account, is used to connect to the SQL Server. In SQL Server Authentication mode, the SQL login and Password have to be provided in the parameters below.
+* **SQL User name**:  Provide the SQL login to connect to the SQL Server. The option is only available if SQL Server Authentication mode has been selected.  
+* **SQL Password**: Provide the Password of the SQL login. The option is only available if SQL Server Authentication mode has been selected.
+* **Shared Catalog**: If not selected, prior the deployment of your packages, the catalog will be dropped. If marked as shared (e.g. in case it is used by other applications), the catalog will not be dropped and extra checks will be made during the deployment. In case you marked your catalog as shared but no catalog is present on the server, a new catalog will be created with a catalog password equal to 'P@ssw0rd'
+* **Catalog Password**: Catalog password protects the database master key that is used for encrypting the catalog data. Save the password in a secure location. It is recommended that you also back up the database master key. This option is only available if Shared Catalog is not set.
+* **SSIS folder Name**: Folder name in the SSIS Package Store.
+* **Environment configuration file**: Path to the configuration file. Wildcards are not allowed.
 
+### Example of the configuration file
+
+Following an example of the configuration file.
+
+```
+<?xml version="1.0" encoding="UTF-8" ?>
+<environments>
+	<environment>
+		<name>MyEnv</name>
+		<description>My Environments</description>
+		<ReferenceOnProjects>
+			<Project Name="BusinessDataVault" />
+			<Project Name="Configuration" />
+		</ReferenceOnProjects>
+		<variables>
+			<variable>
+				<name>CLIENTToDropbox</name>
+				<type>Boolean</type>
+				<value>1</value>
+				<sensitive>false</sensitive>
+				<description></description>
+			</variable>
+			<variable>
+				<name>InitialCatalog</name>
+				<type>String</type>
+				<value>DV</value>
+				<sensitive>false</sensitive>
+				<description>Initial Catalog</description>
+			</variable>
+			<variable>
+				<name>MaxFilesToLoad</name>
+				<type>Int32</type>
+				<value>5</value>
+				<sensitive>false</sensitive>
+				<description>Max Files To Load by dispatcher </description>
+			</variable>
+		</variables>
+	</environment>
+</environments>
+```
+
+As you can see, you need to define an environment element which contains name and description. In ReferenceOnProjects element you will need to list all of the projects on which the current environment needs to be reference to. Under variables you need to enlist all of the variables that you would like to be added to your environment. Variable elements are following:
+* name - The name of the variable
+* type - The type of the variable. A string matching any of the enum elements in System.TypeCode
+* value - The value of the variable
+* sensitive - true to the variable that is sensitive; otherwise, false. Sensitive values are encrypted in the catalog and appear as a NULL value when viewed with Transact-SQL or SQL Server Management Studio.
+* description - For maintainability, the description of the variable.
+
+The same values can be passed in also as a json file with the following structure:
+
+```
+[
+  {
+    "name": "MyEnv",
+    "description": "My Environments",
+    "referenceOnProjects": [
+      {
+        "name": "BusinessDataVault"
+      },
+      {
+        "name": "Configuration"
+      }
+    ],
+    "variables": [
+      {
+        "name": "CLIENTToDropbox",
+        "type": "Boolean",
+        "value": "1",
+        "sensitive": "false",
+        "description": ""
+      },
+      {
+        "name": "MaxFilesToLoad",
+        "type": "Int32",
+        "value": "31",
+        "sensitive": "false",
+        "description": "Max Files To Load by dispatcher"
+      }
+    ]
+  }
+]
+```
 
 ## Contributing
 
