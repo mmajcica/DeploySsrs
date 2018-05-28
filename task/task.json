@@ -16,8 +16,8 @@
     "Minor": "0",
     "Patch": "4"
   },
-  "minimumAgentVersion": "1.95.1",
-  "instanceNameFormat": "Deploy reports on $(url)",
+  "minimumAgentVersion": "1.95.0",
+  "instanceNameFormat": "Deploy reports",
   "groups": [
     {
         "displayName": "Server",
@@ -57,7 +57,7 @@
       "groupName": "server",
       "name": "Username",
       "type": "string",
-      "label": "User name",
+      "label": "Username",
       "required": true,
       "defaultValue": "",
       "visibleRule": "AuthScheme = sqlServerAuthentication",
@@ -77,22 +77,22 @@
       "groupName": "deploy",
       "name": "rdlFilesFolder",
       "type": "filePath",
-      "label": "Folder containing RDL and/or RSD files",
+      "label": "Report Files Path",
       "required": true,
-      "helpMarkDown": "Path of the folder containing RDL and RSD files or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB. Wildcards can be used. For example, `**/*.ispac` for ISPAC file present in all sub folders."
+      "helpMarkDown": "Path of the folder containing RDL and/or RSD files or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB. Wildcards can be used. For example, `**/*.rdl` for RDL files present in all sub folders."
     },
     {
       "groupName": "deploy",
       "name": "ssrsFilePath",
       "type": "filePath",
-      "label": "SSRS definition file",
+      "label": "SSRS configuration file",
       "required": true,
-      "helpMarkDown": "Location of the JSON configuration file or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\reports.json. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB. Wildcards can be used. For example, `**/*.ispac` for ISPAC file present in all sub folders."
+      "helpMarkDown": "Location of the XML or JSON configuration file."
     },
     {
       "groupName": "deploy",
       "defaultValue": "true",
-      "helpMarkDown": "If selected the DataSources in the configuration file will be referenced in the Reports, by maching the DatasSource name.",
+      "helpMarkDown": "If selected the DataSources in the configuration file will be referenced in the Reports, by matching the DataSource name.",
       "label": "Reference DataSources",
       "name": "referenceDataSources",
       "required": false,
@@ -101,7 +101,7 @@
     {
       "groupName": "deploy",
       "defaultValue": "true",
-      "helpMarkDown": "If selected the DataSets in the configuration file will be referenced in the Reports, by maching the DataSets name.",
+      "helpMarkDown": "If selected the DataSets in the configuration file will be referenced in the Reports, by matching the DataSets name.",
       "label": "Reference DataSets",
       "name": "referenceDataSets",
       "required": false,

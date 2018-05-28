@@ -18,6 +18,8 @@
   ],
   "tags": [
     "SQL Server Reporting Services",
+    "Reporting",
+    "Reports",
     "SSRS",
     "SQL",
     "rdl"
@@ -27,7 +29,7 @@
       "uri": "http://blog.majcica.com/"
     },
     "support": {
-      "uri": "http://blog.majcica.com/2017/12/01/using-windows-machine-file-copy-winrm-vsts-extension"
+      "uri": ""
     },
     "repository": {
         "uri": "https://github.com/mmajcica/DeploySsrs"
@@ -51,7 +53,10 @@
   ],
   "content": {
     "details": {
-      "path": "README.md"
+        "path": "README.md"
+    },
+    "license": {
+        "path": "LICENSE.txt"
     }
   },
   "files": [
