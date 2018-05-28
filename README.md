@@ -91,7 +91,7 @@ Following an example of the configuration file.
 
 Following is an example of how will this configuration file translate.
 
-![Example](images\ssrs-deployed.png)
+![Example](images/ssrs-deployed.png)
 
 Some more information about the configuration file and various options.
 Values that you see in double curly braces are placeholders that are going to be substituted in the release just before the deployment.
