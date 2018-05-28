@@ -3,7 +3,7 @@
 ## Overview
 
 This extension will add a Build/Release task in your TFS/VSTS instance that will allow you to deploy Microsoft SQL Server Reporting Services reports, datasources and datasets.
-Aside of deploying reports, datasources and datasets it will also enable you to supply a configuration in form of an xml or json file where you are going to specify folders structure and the reports that are going to be deployed in them. Optionally, in the configuration file, you will be able to specify security that needs to be applied on the deployed objects. Objects that you can manage and deploy are folders, data sources, datasets and reports.
+Aside of deploying reports, datasources and datasets it will also enable you to supply a configuration in form of xml or json file where you are going to specify folders structure and the reports that are going to be deployed in them. Optionally, in the configuration file, you will be able to specify security that needs to be applied on the deployed objects. Objects that you can manage and deploy are folders, data sources, datasets and reports.
 
 ## Requirements
 
@@ -17,7 +17,7 @@ Different parameters of the task are explained below:
 * **Authentication**: Select the authentication mode for connecting to the SQL Server. In Windows authentication mode, the administrator's account, as specified in the Machines section, is used to connect to the SQL Server. In SQL Server Authentication mode, the SQL login and Password have to be provided in the parameters below.
 * **Username**:  Provide the SQL login to connect to the SQL Server. The option is only available if SQL Server Authentication mode has been selected.
 * **Password**: Provide the Password of the SQL login. The option is only available if SQL Server Authentication mode has been selected.
-* **Report Files Path**: Path of the folder containing RDL and/or RSD files or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like `$env:windir`, `$env:systemroot`, `$env:windir\\FabrikamFibre\\DB`. Wildcards can be used. For example, `**/*.rdl` for RDL files present in all sub folders.
+* **Report Files Path**: Path of the folder containing RDL and/or RSD files or on a UNC path like, `\\BudgetIT\Web\Deploy\`. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like `$env:windir`, `$env:systemroot`, `$env:windir\FabrikamFibre\DB`. Wildcards can be used. For example, `**/*.rdl` for RDL files present in all sub folders.
 * **SSRS configuration file**: Location of the XML or JSON configuration file.
 * **SSIS folder Name**: Folder name in the SSIS Package Store.
 * **Reference DataSources**: If selected the DataSources in the configuration file will be referenced in the Reports, by matching the DataSource name.
@@ -27,7 +27,7 @@ Different parameters of the task are explained below:
 ## Example of the configuration file
 
 Considering that there is no official way to specify the path where a report should be deployed, a custom configuration file is provided to the task to indicate the right location.
-Aside of the path itself, you can specify the permissions for both folders that we previously indicated as for the reports and datasets themselves.
+Aside of the path itself, you can specify the permissions for both folders that we previously indicated as for the report and datasets themselves.
 
 Folders and the inside objects are listed in the configuration file as hierarchical tree structure.
 
@@ -91,7 +91,7 @@ Following an example of the configuration file.
 
 Following is an example of how will this configuration file translate.
 
-![Example](images\ssrs-deployed.png)
+![Example](images/ssrs-deployed.png)
 
 Some more information about the configuration file and various options.
 Values that you see in double curly braces are placeholders that are going to be substituted in the release just before the deployment.
