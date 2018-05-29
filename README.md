@@ -89,15 +89,22 @@ Following an example of the configuration file.
 </Folder>
 ```
 
-Following is an example of how will this configuration file translate.
+Values that you see in double curly braces are placeholders that are going to be substituted in the release just before the deployment.
+
+Following is an example of how will this configuration file translate in SSRS.
 
 ![Example](images/ssrs-deployed.png)
 
-Some more information about the configuration file and various options.
-Values that you see in double curly braces are placeholders that are going to be substituted in the release just before the deployment.
-Datasources are to be specified in a configuration file and they are not importable as .rds files. This is so that they can easily be manipulated on per environment basis.
+### More information about the configuration file and various options
 
-The same values can be passed in also as a json file with the equivalent structure.
+Datasources are to be specified in a configuration file and they are not importable as .rds files. This is so that they can easily be manipulated on per environment basis.
+Not all of the authentication types are implemented for datasources. Prompt credentials are not supported.
+
+The same configuration can also be expressed as a json file with the equivalent structure.
+
+## Release notes
+
+* 1.0.1 - Initial release
 
 ## Contributing
 
