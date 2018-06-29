@@ -1019,13 +1019,13 @@ function New-SsrsReport()
                     {
                         $Reference = New-Object -TypeName SSRS.ReportingService2010.ItemReference
                         $Reference.Reference = $ds.Path
-                        $Reference.Name = $node.Name
+                        $Reference.Name = $ds.Name
                 
                         $References += $Reference
                     }
                     else
                     {
-                        Write-Warning "The reference for dataset $($node.Name) can not be found."
+                        Write-Warning "The reference for dataset $($node.ParentNode.Name) can not be found."
                     }
                 }
 
