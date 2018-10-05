@@ -206,7 +206,7 @@ function Publish-SsrsFolder()
             Write-Verbose "Current folder is the root folder"
         }
         
-        Set-SecurityPolicy -Proxy $Proxy -Folder $Folder.Path() -Name $Folder.Name -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite
+        Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -Name $Folder.Name -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite
 
         foreach($folder in $Folder.Folders)
         {
@@ -425,15 +425,13 @@ function Set-SecurityPolicy()
     }
     PROCESS
     {
-        $path = "$($Folder.TrimEnd('/'))/$($Name)" 
-
         # if the item needs to be overwritten and it exists
-        if ($Overwrite -and (Test-SsrsItem $Proxy $path))
+        if ($Overwrite -and (Test-SsrsItem $Proxy $Folder))
         {
             # check if parent security needs to be inherited and if not already so
-            if ($InheritParentSecurity -and -not (Test-InheritParentSecurity $Proxy $path))
+            if ($InheritParentSecurity -and -not (Test-InheritParentSecurity $Proxy $Folder))
             {
-                Set-InheritParentSecurity $Proxy $path
+                Set-InheritParentSecurity $Proxy $Folder
             }
             else
             {
@@ -450,7 +448,7 @@ function Set-SecurityPolicy()
 
                     if ($policies)
                     {
-                        Set-Policy -Proxy $Proxy -Path $path -Policies $policies
+                        Set-Policy -Proxy $Proxy -Path $Folder -Policies $policies
                     }
                 }
             }
