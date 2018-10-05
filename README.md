@@ -104,6 +104,7 @@ The same configuration can also be expressed as a json file with the equivalent 
 
 ## Release notes
 
+* 1.0.2 - Fixed an issue with Dataset references. [PR1](https://github.com/mmajcica/DeploySsrs/pull/1)
 * 1.0.1 - Initial release
 
 ## Contributing
