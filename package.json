@@ -21,12 +21,12 @@
     "url": "git+https://github.com/mmajcica/DeploySsrs.git"
   },
   "devDependencies": {
-    "del": "^2.0.0",
+    "del": "^3.0.0",
     "gulp": "^3.9.1",
-    "gulp-debug": "^2.1.2",
+    "gulp-debug": "^4.0.0",
     "gulp-util": "^3.0.0",
     "merge-stream": "^1.0.0",
-    "shelljs": "^0.3.0",
-    "minimist": "1.1.1"
+    "minimist": "1.2.0",
+    "shelljs": "^0.8.2"
   }
 }

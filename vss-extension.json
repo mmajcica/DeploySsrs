@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "extensionId": "deploy-ssrs",
   "name": "Deploy SSRS",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "mmajcica",
   "description": "Deploy SSRS packages",
   "public": false,
@@ -29,7 +29,7 @@
       "uri": "http://blog.majcica.com/"
     },
     "support": {
-      "uri": ""
+      "uri": "https://github.com/mmajcica/DeploySsrs/issues"
     },
     "repository": {
         "uri": "https://github.com/mmajcica/DeploySsrs"
