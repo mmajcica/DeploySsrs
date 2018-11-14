@@ -902,7 +902,7 @@ function New-SsrsReport()
     {
         try
         {
-            [xml]$Definition = Get-Content -Path $RdlPath
+            [xml]$Definition = Get-Content -Encoding UTF8 -Path $RdlPath
             $NsMgr = New-XmlNamespaceManager $Definition d
 
             $descriptionNode = $Definition.SelectSingleNode('d:Report/d:Description', $NsMgr)
