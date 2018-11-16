@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "extensionId": "deploy-ssrs",
   "name": "Deploy SSRS",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "publisher": "mmajcica",
   "description": "Deploy SSRS packages",
   "public": false,
