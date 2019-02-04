@@ -24,7 +24,7 @@
             </Security>
           </Security>
         </Folder>
-        <Folder Name="User Reports">>
+        <Folder Name="User Reports">
           <Reports>
             <Report Name="Users report" Hidden="false" FileName="UserReport.rdl" />
           </Reports>
