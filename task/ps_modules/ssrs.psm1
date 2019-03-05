@@ -469,7 +469,7 @@ function Set-SecurityPolicy()
 
 function GetJsonFolderItems($Folder, [Folder]$Parent = $null)
 {
-    $f = [Folder]::new($folder.name, $Parent, $folder.hidden)
+    $f = [Folder]::new($folder.name, $Parent, [System.Convert]::ToBoolean($folder.inheritParentSecurity), [System.Convert]::ToBoolean($folder.hidden))
 
     foreach($group in $folder.security)
     {
