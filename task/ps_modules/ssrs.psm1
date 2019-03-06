@@ -499,7 +499,7 @@ function GetJsonFolderItems($Folder, [Folder]$Parent = $null)
 
     foreach($dataSet in $folder.dataSets)
     {
-        $ds = [DataSet]::new($dataSet.name, $dataSet.fileName, $dataSet.inheritParentSecurity, $dataSet.hidden)
+        $ds = [DataSet]::new($dataSet.name, $dataSet.fileName, $dataSet.inheritParentSecurity, [System.Convert]::ToBoolean($dataSet.hidden))
 
         foreach($group in $dataSet.security)
         {
@@ -511,7 +511,7 @@ function GetJsonFolderItems($Folder, [Folder]$Parent = $null)
 
     foreach($report in $folder.reports)
     {
-        $r = [Report]::new($report.name, $report.fileName, $report.inheritParentSecurity, $report.hidden)
+        $r = [Report]::new($report.name, $report.fileName, $report.inheritParentSecurity, [System.Convert]::ToBoolean($report.hidden))
 
         foreach($group in $report.security)
         {
