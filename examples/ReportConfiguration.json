@@ -6,7 +6,7 @@
             "Folders": [
                 {
                     "Name": "Datasources",
-                    "Hidden": "true",
+                    "Hidden": true,
                     "DataSources": [
                         {
                             "ConnectionString": "Data Source={{Server}}\\{{Instance}};Initial Catalog=MyDB",
@@ -21,22 +21,22 @@
                             "CredentialRetrieval": "Store",
                             "UserName": "user",
                             "Password": "password",
-                            "WindowsCredentials": "True"
+                            "WindowsCredentials": true
                         }
                     ]
                 },
                 {
                     "Name": "Admin Reports",
-                    "Hidden": "true",
+                    "Hidden": true,
                     "Reports": [
                         {
                             "Name": "Error Report",
-                            "Hidden": "true",
+                            "Hidden": true,
                             "FileName": "Error Report.rdl"
                         },
                         {
                             "Name": "Error Report for Export",
-                            "Hidden": "true",
+                            "Hidden": true,
                             "FileName": "Error Report for Export.rdl"
                         }
                     ],
@@ -55,18 +55,18 @@
                     "Reports": [
                         {
                             "Name": "Users report",
-                            "Hidden": "false",
+                            "Hidden": false,
                             "FileName": "UserReport.rdl"
                         }
                     ],
                     "Folders": [
                         {
                             "Name": "Reports",
-                            "Hidden": "false",
+                            "Hidden": false,
                             "Reports": [
                                 {
                                     "Name": "Other report",
-                                    "Hidden": "false",
+                                    "Hidden": false,
                                     "FileName": "OtherReport.rdl"
                                 }
                             ]
