@@ -1,7 +1,7 @@
 {
   "name": "mmajcica.deployssrs",
   "version": "0.1.0",
-  "description": "Build/Release task for TFS/VSTS that will allow you to deploy reports and more on SQL SSRS.",
+  "description": "Build/Release task for Azure DevOps that will allow you to deploy reports and more on SQL SSRS.",
   "author": "Mario Majcica",
   "license": "MIT",
   "homepage": "https://github.com/mmajcica/DeploySsrs#readme",
@@ -9,7 +9,7 @@
     "url": "https://github.com/mmajcica/DeploySsrs/issues"
   },
   "keywords": [
-    "VSTS",
+    "Azure DevOps",
     "release",
     "build",
     "SSRS",

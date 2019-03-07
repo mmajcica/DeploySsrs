@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "extensionId": "deploy-ssrs",
   "name": "Deploy SSRS",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "publisher": "mmajcica",
   "description": "Deploy SSRS packages",
   "public": false,
@@ -14,7 +14,7 @@
     "large": "images/logo-large.png"
   },
   "categories": [
-    "Build and release"
+    "Azure Pipelines"
   ],
   "tags": [
     "SQL Server Reporting Services",

@@ -99,7 +99,7 @@ Following an example of the configuration file.
             "Folders": [
                 {
                     "Name": "Datasources",
-                    "Hidden": "true",
+                    "Hidden": true,
                     "DataSources": [
                         {
                             "ConnectionString": "Data Source={{Server}}\\{{Instance}};Initial Catalog=MyDB",
@@ -120,16 +120,16 @@ Following an example of the configuration file.
                 },
                 {
                     "Name": "Admin Reports",
-                    "Hidden": "true",
+                    "Hidden": true,
                     "Reports": [
                         {
                             "Name": "Error Report",
-                            "Hidden": "true",
+                            "Hidden": true,
                             "FileName": "Error Report.rdl"
                         },
                         {
                             "Name": "Error Report for Export",
-                            "Hidden": "true",
+                            "Hidden": true,
                             "FileName": "Error Report for Export.rdl"
                         }
                     ],
@@ -148,18 +148,18 @@ Following an example of the configuration file.
                     "Reports": [
                         {
                             "Name": "Users report",
-                            "Hidden": "false",
+                            "Hidden": false,
                             "FileName": "UserReport.rdl"
                         }
                     ],
                     "Folders": [
                         {
                             "Name": "Reports",
-                            "Hidden": "false",
+                            "Hidden": false,
                             "Reports": [
                                 {
                                     "Name": "Other report",
-                                    "Hidden": "false",
+                                    "Hidden": false,
                                     "FileName": "OtherReport.rdl"
                                 }
                             ]
@@ -203,7 +203,8 @@ The same configuration can also be expressed as a json file with the equivalent 
 
 ## Release notes
 
-* 1.0.4 - Fixed an issue with loading the configuration file and unicode [#15](https://github.com/mmajcica/DeploySsrs/issues/15)
+* 1.0.5 - Fixed issues with parsing certain JSON configuration. [#25](https://github.com/mmajcica/DeploySsrs/issues/25)
+* 1.0.4 - Fixed an issue with loading the configuration file and Unicode. [#15](https://github.com/mmajcica/DeploySsrs/issues/15)
 * 1.0.3 - Fixed an issue with Groups and Roles security. [#11](https://github.com/mmajcica/DeploySsrs/issues/11)
 * 1.0.2 - Fixed an issue with Dataset references. [PR1](https://github.com/mmajcica/DeploySsrs/pull/1)
 * 1.0.1 - Initial release
