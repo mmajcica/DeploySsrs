@@ -89,6 +89,105 @@ Following an example of the configuration file.
 </Folder>
 ```
 
+
+```json
+{
+    "Name": "Root",
+    "Folders": [
+        {
+            "Name": "Folder",
+            "Folders": [
+                {
+                    "Name": "Datasources",
+                    "Hidden": "true",
+                    "DataSources": [
+                        {
+                            "ConnectionString": "Data Source={{Server}}\\{{Instance}};Initial Catalog=MyDB",
+                            "Name": "MyDB",
+                            "Extension": "SQL",
+                            "CredentialRetrieval": "Integrated"
+                        },
+                        {
+                            "ConnectionString": "Data Source={{Server}};Initial Catalog=MetaData",
+                            "Name": "MetaData",
+                            "Extension": "SQL",
+                            "CredentialRetrieval": "Store",
+                            "UserName": "user",
+                            "Password": "password",
+                            "WindowsCredentials": "True"
+                        }
+                    ]
+                },
+                {
+                    "Name": "Admin Reports",
+                    "Hidden": "true",
+                    "Reports": [
+                        {
+                            "Name": "Error Report",
+                            "Hidden": "true",
+                            "FileName": "Error Report.rdl"
+                        },
+                        {
+                            "Name": "Error Report for Export",
+                            "Hidden": "true",
+                            "FileName": "Error Report for Export.rdl"
+                        }
+                    ],
+                    "Security": [
+                        {
+                            "Name": "Administrator",
+                            "Roles": [
+                                "Browser",
+                                "Content Manager"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "Name": "User Reports",
+                    "Reports": [
+                        {
+                            "Name": "Users report",
+                            "Hidden": "false",
+                            "FileName": "UserReport.rdl"
+                        }
+                    ],
+                    "Folders": [
+                        {
+                            "Name": "Reports",
+                            "Hidden": "false",
+                            "Reports": [
+                                {
+                                    "Name": "Other report",
+                                    "Hidden": "false",
+                                    "FileName": "OtherReport.rdl"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "Security": [
+        {
+            "Name": "Users",
+            "Roles": [
+                "Browser"
+            ]
+        },
+        {
+            "Name": "Administrator",
+            "Roles": [
+                "Browser",
+                "Content Manager"
+            ]
+        }
+    ]
+}
+```
+
+
 Values that you see in double curly braces are placeholders that are going to be substituted in the release just before the deployment.
 
 Following is an example of how will this configuration file translate in SSRS.
