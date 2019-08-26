@@ -206,7 +206,7 @@ function Publish-SsrsFolder()
             Write-Verbose "Current folder is the root folder"
         }
         
-        Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -Name $Folder.Name -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite
+        Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite
 
         foreach($folder in $Folder.Folders)
         {
@@ -411,7 +411,7 @@ function Set-SecurityPolicy()
     (
         [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
         [string][parameter(Mandatory = $true)]$Folder,
-        [string][parameter(Mandatory = $true)]$Name,
+        [string]$Name,
         [RoleAssignment[]]$RoleAssignments,
         [switch]$InheritParentSecurity,
         [switch]$Overwrite,
@@ -425,13 +425,21 @@ function Set-SecurityPolicy()
     }
     PROCESS
     {
+        $Path = $Folder
+
+        # if name has been set then we are applying security at the report object level so include in path
+        if ($Name) 
+        {
+            $Path = $Path + '/' + $Name
+        }
+
         # if the item needs to be overwritten and it exists
-        if ($Overwrite -and (Test-SsrsItem $Proxy $Folder))
+        if ($Overwrite -and (Test-SsrsItem $Proxy $Path))
         {
             # check if parent security needs to be inherited and if not already so
-            if ($InheritParentSecurity -and -not (Test-InheritParentSecurity $Proxy $Folder))
+            if ($InheritParentSecurity -and -not (Test-InheritParentSecurity $Proxy $Path))
             {
-                Set-InheritParentSecurity $Proxy $Folder
+                Set-InheritParentSecurity $Proxy $Path
             }
             else
             {
@@ -448,7 +456,7 @@ function Set-SecurityPolicy()
 
                     if ($policies)
                     {
-                        Set-Policy -Proxy $Proxy -Path $Folder -Policies $policies
+                        Set-Policy -Proxy $Proxy -Path $Path -Policies $policies
                     }
                 }
             }
