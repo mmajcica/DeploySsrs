@@ -216,6 +216,53 @@ function Publish-SsrsFolder()
     END { }
 }
 
+
+function Clear-SsrsFolderItems()
+{
+    [CmdletBinding()]
+    param
+    (
+        [Folder][parameter(Mandatory = $true)]$Folder,
+        [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy
+    )
+    BEGIN
+    {
+        Write-Verbose "Entering script $($MyInvocation.MyCommand.Name)"
+        Write-Verbose "Parameter Values"
+        $PSBoundParameters.Keys | ForEach-Object { Write-Verbose "$_ = '$($PSBoundParameters[$_])'" }    
+    }
+    PROCESS
+    {
+        foreach($subFolder in $Folder.Folders)
+        {
+            Clear-SsrsFolderItems -Folder $subFolder -Proxy $proxy
+        }
+
+        if ($Folder.Parent)
+        {
+            $currentFolder = "$($Folder.Path().TrimEnd('/'))/$($Folder.Name)"
+        }
+        else
+        {
+            $currentFolder = "/"
+        }
+
+        if($Folder.CleanExistingItems -eq $true){
+
+            Write-Verbose "Clean existing files from folder $($currentFolder)"
+
+            $catalogItems = $Proxy.ListChildren($currentFolder, $false)
+            foreach($catalogItem in $catalogItems){
+                if($catalogItem.TypeName -ne "Folder"){
+                    Write-Verbose "Remove $($catalogItem.TypeName) $($catalogItem.Path)"
+                    $Proxy.DeleteItem($catalogItem.Path)
+                }
+            }
+        }
+    }
+    END { }
+}
+
 function Publish-DataSource()
 {
     [CmdletBinding()]
@@ -477,7 +524,7 @@ function Set-SecurityPolicy()
 
 function GetJsonFolderItems($Folder, [Folder]$Parent = $null)
 {
-    $f = [Folder]::new($folder.name, $Parent, $folder.inheritParentSecurity, $folder.hidden)
+    $f = [Folder]::new($folder.name, $Parent, $folder.inheritParentSecurity, $folder.hidden, $folder.cleanExistingItems)
 
     foreach($group in $folder.security)
     {
@@ -539,7 +586,7 @@ function GetJsonFolderItems($Folder, [Folder]$Parent = $null)
 
 function GetXmlFolderItems($Folder, [Folder]$Parent = $null)
 {
-    $f = [Folder]::new($folder.name, $Parent, [System.Convert]::ToBoolean($folder.inheritParentSecurity), [System.Convert]::ToBoolean($folder.hidden))
+    $f = [Folder]::new($folder.name, $Parent, [System.Convert]::ToBoolean($folder.inheritParentSecurity), [System.Convert]::ToBoolean($folder.hidden), [System.Convert]::ToBoolean($folder.cleanExistingItems))
 
     foreach($group in $folder.security.security)
     {
@@ -1146,6 +1193,7 @@ class Folder
     [Folder]$Parent
     [boolean]$InheritParentSecurity
     [ValidateNotNullOrEmpty()][boolean]$Hidden
+    [ValidateNotNullOrEmpty()][boolean]$CleanExistingItems
 
     [Folder[]]$Folders
     [DataSource[]]$DataSources
@@ -1160,6 +1208,7 @@ class Folder
         $this.Parent = $Parent
         $this.InheritParentSecurity = $false
         $this.Hidden = $false
+        $this.CleanExistingItems = $false
     }
 
     Folder($Name, [Folder]$Parent, $InheritParentSecurity, $Hidden)
@@ -1168,6 +1217,16 @@ class Folder
         $this.Parent = $Parent
         $this.InheritParentSecurity = $InheritParentSecurity
         $this.Hidden = $Hidden
+        $this.CleanExistingItems = $false
+    }
+
+    Folder($Name, [Folder]$Parent, $InheritParentSecurity, $Hidden, $CleanExistingItems)
+    {
+        $this.Name = $Name
+        $this.Parent = $Parent
+        $this.InheritParentSecurity = $InheritParentSecurity
+        $this.Hidden = $Hidden
+        $this.CleanExistingItems = $CleanExistingItems 
     }
 
     [string]Path()

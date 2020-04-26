@@ -44,7 +44,7 @@ try
     {
         throw "Provided configuration file path $ssrsFilePath is not valid."
     }
-
+    Clear-SsrsFolderItems -Folder $folder -Proxy $proxy
     Publish-SsrsFolder -Folder $folder -Proxy $proxy -FilesFolder $rdlFilesFolder -Overwrite:$overwrite
     $dataSources = Publish-DataSource -Folder $folder -Proxy $proxy -Overwrite:$overwrite
     $dataSets = Publish-DataSet -Folder $folder -Proxy $proxy -FilesFolder $rdlFilesFolder -Overwrite:$overwrite
