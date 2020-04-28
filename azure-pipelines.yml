@@ -62,7 +62,7 @@ stages:
               connectedServiceName: 'Marketplace Test'
               method: 'id'
               publisherId: 'mmajcica-test2'
-              extensionId: 'deploy-ssrs-copy'
+              extensionId: 'deploy-ssrs'
               extensionTag: '-test'
               accounts: 'https://dev.azure.com/mummy-test'
 
