@@ -206,47 +206,6 @@ function Publish-SsrsFolder()
             Write-Verbose "Current folder is the root folder"
         }
         
-        Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite
-
-        foreach($folder in $Folder.Folders)
-        {
-            Publish-SsrsFolder -Folder $folder -Proxy $Proxy -FilesFolder $FilesFolder -Overwrite:$Overwrite
-        }
-    }
-    END { }
-}
-
-
-function Clear-SsrsFolderItems()
-{
-    [CmdletBinding()]
-    param
-    (
-        [Folder][parameter(Mandatory = $true)]$Folder,
-        [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy
-    )
-    BEGIN
-    {
-        Write-Verbose "Entering script $($MyInvocation.MyCommand.Name)"
-        Write-Verbose "Parameter Values"
-        $PSBoundParameters.Keys | ForEach-Object { Write-Verbose "$_ = '$($PSBoundParameters[$_])'" }    
-    }
-    PROCESS
-    {
-        foreach($subFolder in $Folder.Folders)
-        {
-            Clear-SsrsFolderItems -Folder $subFolder -Proxy $proxy
-        }
-
-        if ($Folder.Parent)
-        {
-            $currentFolder = "$($Folder.Path().TrimEnd('/'))/$($Folder.Name)"
-        }
-        else
-        {
-            $currentFolder = "/"
-        }
-
         if($Folder.CleanExistingItems -eq $true){
 
             Write-Verbose "Clean existing files from folder $($currentFolder)"
@@ -258,6 +217,13 @@ function Clear-SsrsFolderItems()
                     $Proxy.DeleteItem($catalogItem.Path)
                 }
             }
+        }
+
+        Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite
+
+        foreach($folder in $Folder.Folders)
+        {
+            Publish-SsrsFolder -Folder $folder -Proxy $Proxy -FilesFolder $FilesFolder -Overwrite:$Overwrite
         }
     }
     END { }
