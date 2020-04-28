@@ -31,7 +31,8 @@ Aside of the path itself, you can specify the permissions for both folders that 
 
 Folders and the inside objects are listed in the configuration file as hierarchical tree structure.
 
-Folders may be cleaned up to remove old or renamed reports during the deployment by specifying the CleanExistingItems configuration property on the folder configuration.
+Folders may be cleaned up to remove old or renamed reports during the deployment by specifying the CleanExistingItems configuration property on the folder configuration. 
+Note: The CleanExistingItems config property will only delete files when cleaning a folder and will preserve any existing subfolders under the current directory.
 
 Following an example of the configuration file.
 
