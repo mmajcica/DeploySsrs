@@ -31,6 +31,9 @@ Aside of the path itself, you can specify the permissions for both folders that 
 
 Folders and the inside objects are listed in the configuration file as hierarchical tree structure.
 
+Folders may be cleaned up to remove old or renamed reports during the deployment by specifying the CleanExistingItems configuration property on the folder configuration. 
+Note: The CleanExistingItems config property will only delete files when cleaning a folder and will preserve any existing subfolders under the current directory.
+
 Following an example of the configuration file.
 
 ```xml
@@ -46,7 +49,7 @@ Following an example of the configuration file.
             <DataSource ConnectionString="Data Source={{Server}};Initial Catalog=MetaData" Name="MetaData" Extension="SQL" CredentialRetrieval="Store" UserName="user" Password="password" WindowsCredentials="True" />
           </DataSources>
         </Folder>
-        <Folder Name="Admin Reports" Hidden="true">
+        <Folder Name="Admin Reports" Hidden="true" CleanExistingItems="true">
           <Reports>
             <Report Name="Error Report" Hidden="true" FileName="Error Report.rdl" />
             <Report Name="Error Report for Export" Hidden="true" FileName="Error Report for Export.rdl" />
@@ -60,7 +63,7 @@ Following an example of the configuration file.
             </Security>
           </Security>
         </Folder>
-        <Folder Name="User Reports">>
+        <Folder Name="User Reports">
           <Reports>
             <Report Name="Users report" Hidden="false" FileName="UserReport.rdl" />
           </Reports>
@@ -120,6 +123,7 @@ Following an example of the configuration file.
                 {
                     "Name": "Admin Reports",
                     "Hidden": true,
+                    "CleanExistingItems": true,
                     "Reports": [
                         {
                             "Name": "Error Report",

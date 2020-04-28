@@ -4,7 +4,7 @@
   <Folders>
     <Folder Name="Folder">
       <Folders>
-        <Folder Name="Datasources" Hidden="true">
+        <Folder Name="Datasources" Hidden="true" CleanExistingItems="true">
           <DataSources>
             <DataSource ConnectionString="Data Source={{Server}}\{{Instance}};Initial Catalog=MyDB" Name="MyDB" Extension="SQL" CredentialRetrieval="Integrated" />
             <DataSource ConnectionString="Data Source={{Server}};Initial Catalog=MetaData" Name="MetaData" Extension="SQL" CredentialRetrieval="Store" UserName="user" Password="password" WindowsCredentials="True" />
