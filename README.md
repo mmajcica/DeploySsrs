@@ -89,7 +89,6 @@ Following an example of the configuration file.
 </Folder>
 ```
 
-
 ```json
 {
     "Name": "Root",
@@ -187,7 +186,6 @@ Following an example of the configuration file.
 }
 ```
 
-
 Values that you see in double curly braces are placeholders that are going to be substituted in the release just before the deployment.
 
 Following is an example of how will this configuration file translate in SSRS.
@@ -212,4 +210,6 @@ The same configuration can also be expressed as a json file with the equivalent 
 
 ## Contributing
 
-Feel free to notify any issue in the issues section of this GitHub repository. In order to build this task, you will need Node.js and gulp installed. Once cloned the repository, just run 'npm install' then 'gulp package' and in the newly created folder called _packages you will find a new version of the extension.
+Feel free to notify any issue in the issues section of this GitHub repository.
+
+[![Build Status](https://dev.azure.com/mummy/Azure%20DevOps%20Extensions/_apis/build/status/mmajcica.DeploySsrs?branchName=master)](https://dev.azure.com/mummy/Azure%20DevOps%20Extensions/_build/latest?definitionId=44&branchName=master)
