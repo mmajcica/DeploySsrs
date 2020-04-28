@@ -53,6 +53,7 @@ stages:
               publisherId: 'mmajcica-test2'
               extensionTag: '-test'
               extensionName: 'Deploy SSRS - Test'
+              updateTasksVersion: false
               extensionVisibility: 'private'
               shareWith: 'mummy-test'
           - task: InstallAzureDevOpsExtension@2
