@@ -205,6 +205,7 @@ The same configuration can also be expressed as a json file with the equivalent 
 
 ## Release notes
 
+* 1.0.7 - Add support for cleaning folder contents during deploy. [#37](https://github.com/mmajcica/DeploySsrs/issues/37)
 * 1.0.6 - Applying rights on report level bug fix. [#32](https://github.com/mmajcica/DeploySsrs/issues/32)
 * 1.0.5 - Fixed issues with parsing certain JSON configuration. [#25](https://github.com/mmajcica/DeploySsrs/issues/25)
 * 1.0.4 - Fixed an issue with loading the configuration file and Unicode. [#15](https://github.com/mmajcica/DeploySsrs/issues/15)
