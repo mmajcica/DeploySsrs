@@ -20,8 +20,8 @@ Different parameters of the task are explained below:
 * **Report Files Path**: Path of the folder containing RDL and/or RSD files or on a UNC path like, `\\BudgetIT\Web\Deploy\`. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like `$env:windir`, `$env:systemroot`, `$env:windir\FabrikamFibre\DB`. Wildcards can be used. For example, `**/*.rdl` for RDL files present in all sub folders.
 * **SSRS configuration file**: Location of the XML or JSON configuration file.
 * **SSIS folder Name**: Folder name in the SSIS Package Store.
-* **Reference DataSources**: If selected the DataSources in the configuration file will be referenced in the Reports, by matching the DataSource name.
-* **Reference DataSets**: If selected the DataSets in the configuration file will be referenced in the Reports, by matching the DataSets name.
+* **Reference DataSources**: If selected the DataSources in the configuration file will be referenced in the Reports, by matching the DataSource DataSourceReference value.
+* **Reference DataSets**: If selected the DataSets in the configuration file will be referenced in the Reports, by matching the DataSets SharedDataSetReference value.
 * **Overwrite existing objects**: If selected overwrites objects in the same path that already do exists.
 
 ## Example of the configuration file

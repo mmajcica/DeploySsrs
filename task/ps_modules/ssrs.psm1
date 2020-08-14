@@ -962,21 +962,21 @@ function New-SsrsReport()
 
             if ($ReferenceDataSources -and $Datasources)
             {
-                $nodes = $Definition.SelectNodes('d:Report/d:DataSources/d:DataSource/d:DataSourceReference/..', $NsMgr)
+                $nodes = $Definition.SelectNodes('d:Report/d:DataSources/d:DataSource/d:DataSourceReference', $NsMgr)
 
                 foreach ($node in $nodes)
                 {
-                    $Datasources | Where-Object { $_.Name -eq $node.Name } | ForEach-Object { $node.DataSourceReference = $_.Path.ToString() ; $node.ChildNodes[2].InnerText = $_.Id }
+                    $Datasources | Where-Object { $_.Name -eq $node.InnerText } | ForEach-Object { $node.InnerText = $_.Path.ToString() ; $node.ParentNode.ChildNodes[2].InnerText = $_.Id }
                 }
             }
 
             if ($ReferenceDataSets -and $DataSets)
             {
-                $nodes = $Definition.SelectNodes('d:Report/d:DataSets/d:DataSet/d:SharedDataSet/d:SharedDataSetReference/..', $NsMgr)
+                $nodes = $Definition.SelectNodes('d:Report/d:DataSets/d:DataSet/d:SharedDataSet/d:SharedDataSetReference', $NsMgr)
 
                 foreach($node in $nodes)
                 {
-                    @($Datasets | Where-Object { $_.Name -eq $node.ParentNode.Name }) | ForEach-Object { $node.SharedDataSetReference = $_.Path }
+                    @($Datasets | Where-Object { $_.Name -eq $node.InnerText }) | ForEach-Object { $node.InnerText = $_.Path }
                 }
             }
 
