@@ -55,7 +55,7 @@ stages:
               extensionName: 'Deploy SSRS - Test'
               updateTasksVersion: false
               extensionVisibility: 'private'
-              shareWith: 'mummy-test'
+              shareWith: 'mummy-test,actionlogementservices'
           - task: InstallAzureDevOpsExtension@2
             inputs:
               connectTo: 'VsTeam'
