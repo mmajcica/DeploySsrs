@@ -67,7 +67,7 @@ stages:
               accounts: 'https://dev.azure.com/mummy-test'
 
 - stage: Production
-  condition: succeeded('Test')
+  condition: and(succeeded('Test'), eq(variables['build.sourceBranch'], 'refs/heads/master'))
   jobs:
   - deployment: Deploy
     continueOnError: false
