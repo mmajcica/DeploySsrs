@@ -41,6 +41,7 @@ function New-DataSource()
             }
 
             $Definition.ImpersonateUser = $ImpersonateUser
+            $Definition.ImpersonateUserSpecified = $ImpersonateUser
             $Definition.WindowsCredentials = $WindowsCredentials
 
             $properties = $null
