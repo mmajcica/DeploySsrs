@@ -40,6 +40,7 @@ function New-DataSource()
                 $Definition.Password = $Password
             }
 
+            $Definition.ImpersonateUser = $ImpersonateUser
             $Definition.ImpersonateUserSpecified = $ImpersonateUser
             $Definition.WindowsCredentials = $WindowsCredentials
 
