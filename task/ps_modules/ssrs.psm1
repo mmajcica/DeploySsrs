@@ -220,7 +220,7 @@ function Publish-SsrsFolder()
             }
         }
 
-        Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite
+        Set-SecurityPolicy -Proxy $Proxy -Folder $currentFolder -RoleAssignments $Folder.RoleAssignments -InheritParentSecurity:$Folder.InheritParentSecurity -Overwrite:$Overwrite
 
         foreach($folder in $Folder.Folders)
         {
