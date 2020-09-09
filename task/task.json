@@ -36,7 +36,7 @@
       "name": "url",
       "type": "string",
       "label": "ReportService2010 endpoint URL",
-      "defaultValue": "http://your.server/ReportServer/ReportService2010.asmx?wsdl",
+      "defaultValue": "http://your.server/ReportServer/ReportService2010.asmx",
       "required": true,
       "helpMarkDown": "The Report Server Web service ReportService2010 endpoint URL"
     },
