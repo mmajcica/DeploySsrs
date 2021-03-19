@@ -14,7 +14,7 @@ stages:
     steps:
     - task: TfxInstaller@2
       inputs:
-        version: 'v0.7.x'
+        version: 'v0.8.x'
     - task: PackageAzureDevOpsExtension@2
       inputs:
         rootFolder: '$(Build.SourcesDirectory)'
@@ -43,7 +43,7 @@ stages:
               targetPath: '$(Pipeline.Workspace)'
           - task: TfxInstaller@2
             inputs:
-              version: 'v0.7.x'
+              version: 'v0.8.x'
           - task: PublishAzureDevOpsExtension@2
             inputs:
               connectTo: 'VsTeam'
@@ -82,7 +82,7 @@ stages:
               targetPath: '$(Pipeline.Workspace)'
           - task: TfxInstaller@2
             inputs:
-              version: 'v0.7.x'
+              version: 'v0.8.x'
           - task: PublishAzureDevOpsExtension@2
             inputs:
               connectTo: 'VsTeam'
