@@ -12,10 +12,10 @@ stages:
   - job: Build
     continueOnError: false
     steps:
-    - task: TfxInstaller@2
+    - task: TfxInstaller@3
       inputs:
         version: 'v0.8.x'
-    - task: PackageAzureDevOpsExtension@2
+    - task: PackageAzureDevOpsExtension@3
       inputs:
         rootFolder: '$(Build.SourcesDirectory)'
         outputPath: '$(Build.ArtifactStagingDirectory)/Extension'
@@ -41,10 +41,10 @@ stages:
             inputs:
               buildType: 'current'
               targetPath: '$(Pipeline.Workspace)'
-          - task: TfxInstaller@2
+          - task: TfxInstaller@3
             inputs:
               version: 'v0.8.x'
-          - task: PublishAzureDevOpsExtension@2
+          - task: PublishAzureDevOpsExtension@3
             inputs:
               connectTo: 'VsTeam'
               connectedServiceName: 'Marketplace Test'
@@ -56,7 +56,7 @@ stages:
               updateTasksVersion: false
               extensionVisibility: 'private'
               shareWith: 'mummy-test,actionlogementservices'
-          - task: InstallAzureDevOpsExtension@2
+          - task: InstallAzureDevOpsExtension@3
             inputs:
               connectTo: 'VsTeam'
               connectedServiceName: 'Marketplace Test'
@@ -80,10 +80,10 @@ stages:
             inputs:
               buildType: 'current'
               targetPath: '$(Pipeline.Workspace)'
-          - task: TfxInstaller@2
+          - task: TfxInstaller@3
             inputs:
               version: 'v0.8.x'
-          - task: PublishAzureDevOpsExtension@2
+          - task: PublishAzureDevOpsExtension@3
             inputs:
               connectTo: 'VsTeam'
               connectedServiceName: 'Marketplace'
