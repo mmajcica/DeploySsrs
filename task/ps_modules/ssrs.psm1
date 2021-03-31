@@ -967,7 +967,8 @@ function New-SsrsReport()
 
                 foreach ($node in $nodes)
                 {
-                    $Datasources | Where-Object { $_.Name -eq $node.InnerText } | ForEach-Object { $node.InnerText = $_.Path.ToString() ; $node.ParentNode.ChildNodes[2].InnerText = $_.Id }
+                    # Since a path can already been set here, take the last part of the path that is the name of the shared datasource
+                    $Datasources | Where-Object { $_.Name -eq ($node.InnerText.split("/") | Select-Object -Last 1) } | ForEach-Object { $node.InnerText = $_.Path.ToString() ; $node.ParentNode.ChildNodes[2].InnerText = $_.Id }
                 }
             }
 
@@ -977,7 +978,8 @@ function New-SsrsReport()
 
                 foreach($node in $nodes)
                 {
-                    @($Datasets | Where-Object { $_.Name -eq $node.InnerText }) | ForEach-Object { $node.InnerText = $_.Path }
+                    # Since a path can already been set here, take the last part of the path that is the name of the shared dataset
+                    @($Datasets | Where-Object { $_.Name -eq ($node.InnerText.split("/") | Select-Object -Last 1) }) | ForEach-Object { $node.InnerText = $_.Path }
                 }
             }
 
@@ -997,11 +999,12 @@ function New-SsrsReport()
             {
                 [SSRS.ReportingService2010.DataSource[]]$RefDataSources = $null
                 
-                $nodes = $Definition.SelectNodes('d:Report/d:DataSources/d:DataSource/d:DataSourceReference/..', $NsMgr)
+                $nodes = $Definition.SelectNodes('d:Report/d:DataSources/d:DataSource/d:DataSourceReference', $NsMgr)
 
                 foreach($node in $nodes)
                 {
-                    $ds = $Datasources | Where-Object { $_.Name -eq $node.Name } | Select-Object -First 1
+                    # Since a path can already been set here, take the last part of the path that is the name of the shared datasource
+                    $ds = $Datasources | Where-Object { $_.Name -eq ($node.InnerText.split("/") | Select-Object -Last 1) } | Select-Object -First 1
                     
                     if ($ds)
                     {
@@ -1010,7 +1013,7 @@ function New-SsrsReport()
 
                         $DataSource = New-Object -TypeName SSRS.ReportingService2010.DataSource
                         $DataSource.Item = $Reference
-                        $DataSource.Name = $node.Name
+                        $DataSource.Name = $node.ParentNode.Name # Datasource's name that is used as reference in the report
 
                         $RefDataSources += $DataSource
                     }
@@ -1029,23 +1032,25 @@ function New-SsrsReport()
             if ($ReferenceDataSets -and $DataSets)
             {
                 [SSRS.ReportingService2010.ItemReference[]]$References = $null
-                $nodes = $Definition.SelectNodes('d:Report/d:DataSets/d:DataSet/d:SharedDataSet/d:SharedDataSetReference/..', $NsMgr)
+                $nodes = $Definition.SelectNodes('d:Report/d:DataSets/d:DataSet/d:SharedDataSet/d:SharedDataSetReference', $NsMgr)
 
                 foreach($node in $nodes)
                 {
-                    $ds = $DataSets | Where-Object { $_.Name -eq $node.ParentNode.Name } | Select-Object -First 1
+                    # Since a path can already been set here, take the last part of the path that is the name of the shared dataset
+                    $nodeSDsName = $node.InnerText.split("/") | Select-Object -Last 1
+                    $ds = $DataSets | Where-Object { $_.Name -eq $nodeSDsName } | Select-Object -First 1
 
                     if ($ds)
                     {
                         $Reference = New-Object -TypeName SSRS.ReportingService2010.ItemReference
                         $Reference.Reference = $ds.Path
-                        $Reference.Name = $ds.Name
+                        $Reference.Name = $node.ParentNode.ParentNode.Name # Dataset's name that is used as reference in the report
                 
                         $References += $Reference
                     }
                     else
                     {
-                        Write-Warning "The reference for dataset $($node.ParentNode.Name) can not be found."
+                        Write-Warning "The reference for dataset $nodeSDsName can not be found."
                     }
                 }
 
