@@ -46,7 +46,7 @@ try
     }
     Publish-SsrsFolder -Folder $folder -Proxy $proxy -FilesFolder $rdlFilesFolder -Overwrite:$overwrite
     $dataSources = Publish-DataSource -Folder $folder -Proxy $proxy -Overwrite:$overwrite
-    $dataSets = Publish-DataSet -Folder $folder -Proxy $proxy -FilesFolder $rdlFilesFolder -Overwrite:$overwrite
+    $dataSets = Publish-DataSet -Folder $folder -Proxy $proxy -FilesFolder $rdlFilesFolder -Overwrite:$overwrite -DataSources $dataSources
     Publish-Reports -Folder $folder -Proxy $proxy -FilesFolder $rdlFilesFolder -DataSources $dataSources -ReferenceDataSources $referenceDataSources -DataSets $dataSets -ReferenceDataSets $referenceDataSets -Overwrite:$overwrite
 }
 finally
