@@ -297,6 +297,7 @@ function Publish-DataSet()
     (
         [Folder][parameter(Mandatory = $true)]$Folder,
         [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
+        [SsrsDataSource[]]$DataSources,
         [string]$FilesFolder,
         [switch]$Overwrite
     )
@@ -327,6 +328,7 @@ function Publish-DataSet()
             {
                 New-SsrsDataSet -Proxy $Proxy `
                                 -RsdPath $rsdPath `
+                                -DataSources $DataSources `
                                 -Path $currentFolder `
                                 -Name $dataSet.Name `
                                 -Hidden:$dataSet.Hidden `
@@ -345,7 +347,7 @@ function Publish-DataSet()
 
         foreach($folder in $Folder.Folders)
         {
-            $dataSets += Publish-DataSet -Folder $folder -FilesFolder $FilesFolder -Proxy $Proxy -Overwrite:$Overwrite
+            $dataSets += Publish-DataSet -Folder $folder -FilesFolder $FilesFolder -Proxy $Proxy -Overwrite:$Overwrite -DataSources $DataSources
         }
 
         return $dataSets
@@ -1080,6 +1082,7 @@ function New-SsrsDataSet()
     (
         [System.Web.Services.Protocols.SoapHttpClientProtocol][parameter(Mandatory = $true)]$Proxy,
         [ValidateScript({Test-Path $_ -PathType 'Leaf'})][parameter(Mandatory = $true)][string]$RsdPath,
+        [SsrsDataSource[]]$DataSources,
         [string]$Path = "/",
         [parameter(Mandatory = $true)][string]$Name,
         [switch]$Hidden,
@@ -1118,9 +1121,8 @@ function New-SsrsDataSet()
             {
                 Write-Warning $warnings.Message
             }
-
-            $dss = Get-SsrsItem -Proxy $Proxy -Type DataSource
-            $ds = $dss | Where-Object { $_.Name -eq $Rsd.SharedDataSet.DataSet.Query.DataSourceReference } | Select-Object -First 1
+            
+            $ds = $DataSources | Where-Object { $_.Name -eq $Rsd.SharedDataSet.DataSet.Query.DataSourceReference } | Select-Object -First 1
 
             if ($ds)
             {
