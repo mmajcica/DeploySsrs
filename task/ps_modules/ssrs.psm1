@@ -985,7 +985,13 @@ function New-SsrsReport()
                 }
             }
 
-            $rawDefinition = [System.Text.Encoding]::UTF8.GetBytes($Definition.OuterXml)
+            # To preserve carriage return and indenting in xml file use xml text writer
+            #$rawDefinition = [System.Text.Encoding]::UTF8.GetBytes($Definition.OuterXml)
+            $stringWriter = New-Object System.IO.StringWriter
+            $xmlWriter = New-Object System.Xml.XmlTextWriter($stringWriter)
+            $xmlWriter.Formatting = [System.Xml.Formatting]::Indented
+            $Definition.WriteContentTo($xmlWriter)
+            $rawDefinition = [System.Text.Encoding]::UTF8.GetBytes($stringWriter.ToString())
 
             Write-Verbose "Creating report $Name"
             $warnings = $null
